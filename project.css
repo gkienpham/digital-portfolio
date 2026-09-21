@@ -111,8 +111,8 @@ pre code, pre code {
 
 .proj-gallery img {
     width: 100%;
-    height: 150px;
-    object-fit: cover;
+    height: auto;
+    object-fit: contain;
     border-radius: var(--radius);
 }
 
@@ -163,9 +163,5 @@ pre code, pre code {
 
     .proj-header {
         font-size: 1.3em;
-    }
-
-    .proj-gallery img {
-        height: 120px;
     }
 }
