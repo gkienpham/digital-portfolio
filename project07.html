@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Project 7: Draw a Square</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" href="./project.css">
+</head>
+<body>
+
+    <!-- Header and Navigation Section -->
+    <header class="header">
+        <nav class="navbar">
+            <a href="./index.html" class="active">Home</a>
+        </nav>
+    </header>
+
+    <!-- Project Information -->
+    <div class="proj-container">
+
+        <h1 class='proj-header'>Project Portfolio</h1>
+
+        <div class="proj-img-container">
+            <img src="./images/project07.jpg" alt="LEGO SPIKE Prime drawing robot seen from above on the challenge placemat: white hub, two light-blue wheels, and a dry-erase marker held upright between the wheels by a beam tower and rubber bands">
+        </div>
+
+        <h2 class='proj-header'>Project 7: Draw a Square</h2>
+
+        <div class="proj-desc">
+            <p>The Draw a Square challenge was to program a LEGO SPIKE Prime robot to draw a square with a marker on a placemat. The drawn square had to stay inside the solid big square and outside the dashed small square, finish where it started, and have corners close to 90&deg;.</p>
+            <p>My robot drives on two motors, one per wheel (left motor on port B, right motor on port A), and a ball caster for support. A dry-erase marker is held upright by a beam tower and rubber bands so that its tip sits at the midpoint between the two wheel centers. Because of this, the robot turns around the pen at each corner.</p>
+            <p>My Python program repeats the same steps four times, once for each side. First, both wheels drive forward 256 motor degrees together, my trial value for a 12.5 cm side with 56 mm wheels. Then the program resets the hub&#8217;s yaw angle, spins the robot in place (left wheel backward, right wheel forward) until the motion sensor reads a 90&deg; turn, and brakes. Resetting the yaw before every corner means each turn is measured separately.</p>
+        </div>
+
+        <div class="proj-img-container">
+            <img src="./images/project07-pen.jpg" alt="Front close-up of the robot: the marker tip touches the placemat at the midpoint between the two light-blue wheels">
+        </div>
+
+        <div class="proj-video-container">
+            <iframe src="https://www.youtube.com/embed/1l1j8g2ZR1c" title="Draw a Square robot drawing its square" allowfullscreen></iframe>
+        </div>
+
+        <h3>My Square and Post-Assessment:</h3>
+
+        <div class="proj-img-container">
+            <img src="./images/project07-square.jpg" alt="Placemat with the square my robot drew between the solid big square and the dashed small square, next to my completed post-assessment checklist">
+        </div>
+
+        <div class="proj-desc">
+            <p><strong>Performance:</strong> The drawn square stayed on the placemat, stayed inside the solid big square, and stayed outside the dashed small square (all three checked).</p>
+            <p><strong>Finished where started:</strong> Exactly!</p>
+            <p><strong>Looks like a square:</strong> Spot on! All angles are pretty close to 90&deg; (within about &plusmn;10&deg;).</p>
+        </div>
+
+        <div class="proj-code">
+            <h3>Code:</h3>
+            <pre><code>
+# Setup: left wheel motor on port B; right wheel motor on port A.
+# Pen tip is at the midpoint between the two wheel centers.
+from hub import port, motion_sensor
+import runloop
+import motor
+import motor_pair
+
+# Trial value for a 12.5 cm side with 56 mm wheels.
+SIDE_MOTOR_DEGREES = 256
+FORWARD_SPEED = 100   # Motor degrees per second.
+TURN_SPEED = 80       # Motor degrees per second.
+TURN_ANGLE = 900      # 90 degrees in motion-sensor decidegrees.
+
+async def main():
+    # Pair the wheels so they drive together.
+    motor_pair.pair(motor_pair.PAIR_1, port.B, port.A)
+
+    # Draw all four sides, turning anticlockwise at each vertex.
+    for side_number in range(4):
+        await motor_pair.move_for_degrees(
+            motor_pair.PAIR_1,
+            SIDE_MOTOR_DEGREES,
+            0,
+            velocity=FORWARD_SPEED
+        )
+
+        # Measure each turn separately.
+        motion_sensor.reset_yaw(0)
+        await runloop.sleep_ms(50)
+
+        # Turn around the pen: left wheel backward, right wheel forward.
+        motor_pair.move_tank(
+            motor_pair.PAIR_1,
+            -TURN_SPEED,
+            TURN_SPEED
+        )
+
+        # Keep checking the angle while allowing the hub to run other tasks.
+        while abs(motion_sensor.tilt_angles()[0]) &lt; TURN_ANGLE:
+            await runloop.sleep_ms(5)
+
+        motor_pair.stop(motor_pair.PAIR_1, stop=motor.BRAKE)
+
+    # Release the motor ports when the square is complete.
+    motor_pair.unpair(motor_pair.PAIR_1)
+
+runloop.run(main())
+
+</code></pre></div>
+
+    </div>
+    <!-- End Project Information -->
+
+</body>
+</html>
