@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Activity 4: Programming with Sensors</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" href="./project.css">
+</head>
+<body>
+
+    <!-- Header and Navigation Section -->
+    <header class="header">
+        <nav class="navbar">
+            <a href="./index.html" class="active">Home</a>
+        </nav>
+    </header>
+
+    <!-- Project Information -->
+    <div class="proj-container">
+
+        <h1 class='proj-header'>Project Portfolio</h1>
+
+        <div class="proj-img-container">
+            <img src="./images/activity04.jpg" alt="LEGO SPIKE Prime hub lying flat on a wooden table, connected by a cable to a SPIKE motor">
+        </div>
+
+        <h2 class='proj-header'>Activity 4: Programming with Sensors</h2>
+
+        <div class="proj-desc">
+            <p>For this in-class activity, we used AI to help write code that reads an input sensor and uses it to control a motor (output), as practice for Project 8: Astronaut Tools. I chose the SPIKE Prime hub&#8217;s built-in IMU (motion sensor) as my input and a motor on port A as my output.</p>
+            <p>When the hub lies flat (parallel to the ground), the motor stays off. When I tilt the hub forward, backward, or to the side, the motor turns on, and the further it tilts, the faster it spins. Every 20 ms, the program reads the hub&#8217;s pitch and roll and adds them together (ignoring direction) to get the total tilt. Yaw is ignored. A tilt of 2&deg; or less counts as level, so small sensor fluctuations don&#8217;t switch the motor on. Above that, the speed increases with the tilt until it reaches 650 degrees per second at 30&deg;. So the tilt controls both on/off and speed. The motor always spins forward.</p>
+        </div>
+
+        <div class="proj-img-container">
+            <img src="./images/activity04-tilted.jpg" alt="Holding the SPIKE Prime hub tilted above the table, with the motor still connected by its cable">
+        </div>
+
+        <div class="proj-desc">
+            <p>I wrote the program with help from ChatGPT. My first prompt described this behavior: motor off when the hub is level, faster the further it tilts, and the motor on port A. Then I asked it to make the motor run even faster as the hub tilts. ChatGPT lowered the tilt needed for full speed from 45&deg; to 30&deg; and raised the maximum speed to 650 degrees per second.</p>
+            <p>When I tested the final code, the motor stayed off while the hub was flat and sped up as I tilted the hub further.</p>
+        </div>
+
+        <div class="proj-video-container">
+            <iframe src="https://www.youtube.com/embed/kqZgrbjqShY" title="IMU motor control demo: motor speeds up as the hub tilts" allowfullscreen></iframe>
+        </div>
+
+        <div class="proj-code">
+            <h3>Code:</h3>
+            <pre><code>
+# Setup: the motor is connected to port A.
+from hub import port, motion_sensor
+import runloop
+import motor
+
+# Treat tilt smaller than this as level, in degrees.
+LEVEL_TOLERANCE = 2
+
+# Reach maximum speed at a smaller tilt angle.
+MAX_TILT_DEGREES = 30
+
+# Maximum motor speed in degrees per second.
+MAX_SPEED = 650
+
+async def main():
+    # Keep checking the hub's tilt while the program runs.
+    while True:
+        # Read pitch and roll. The sensor reports decidegrees,
+        # so divide by 10 to get degrees. The tuple is (yaw, pitch, roll).
+        angles = motion_sensor.tilt_angles()
+        pitch_degrees = angles[1] / 10
+        roll_degrees = angles[2] / 10
+
+        # Combine pitch and roll to estimate how far the hub is tilted.
+        tilt_amount = abs(pitch_degrees) + abs(roll_degrees)
+
+        # Keep the motor off when the hub is approximately level.
+        if tilt_amount &lt;= LEVEL_TOLERANCE:
+            motor.stop(port.A)
+        else:
+            # Increase speed with tilt, stopping the calculation at MAX_SPEED.
+            speed = int(tilt_amount * MAX_SPEED / MAX_TILT_DEGREES)
+            speed = min(speed, MAX_SPEED)
+
+            # Run the motor forward at the calculated speed.
+            motor.run(port.A, speed)
+
+        # Pause briefly before checking the tilt again.
+        await runloop.sleep_ms(20)
+
+runloop.run(main())
+
+</code></pre></div>
+
+    </div>
+    <!-- End Project Information -->
+
+</body>
+</html>
