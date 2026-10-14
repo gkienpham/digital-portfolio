@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Project 8: Astronaut Tools</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" href="./project.css">
+</head>
+<body>
+
+    <!-- Header and Navigation Section -->
+    <header class="header">
+        <nav class="navbar">
+            <a href="./index.html" class="active">Home</a>
+        </nav>
+    </header>
+
+    <!-- Project Information -->
+    <div class="proj-container">
+
+        <h1 class='proj-header'>Project Portfolio</h1>
+
+        <div class="proj-img-container">
+            <img src="./images/project08.jpg" alt="Gun-style LEGO SPIKE Prime screwdriver on a wooden table: the SPIKE hub as the handle, a light-blue wheel, and a socket made of long black axles sticking out the front">
+        </div>
+
+        <h2 class='proj-header'>Project 8: Astronaut Tools</h2>
+
+        <div class="proj-desc">
+            <p>The Astronaut Tools challenge was to build a tool that helps an astronaut do a task during a spacewalk (EVA). The tool had to unscrew a nut from one bolt, move it to a second bolt, and screw it back on, without letting go of the nut at any point, because a dropped nut would float away in zero gravity. It also had to work with one hand, with either the left or the right hand, while wearing bulky gloves that stand in for space gloves.</p>
+            <p>I built a gun-style screwdriver. The SPIKE Prime hub is the handle, a Force Sensor on port A is the trigger, and a Medium Motor on port B turns a socket made of long LEGO axles that fits over the nut.</p>
+            <p>My Python program checks the trigger every 20 ms and sets the motor speed from how hard I press: the harder I press, the faster the socket spins, up to 1100 degrees per second. Releasing the trigger stops the motor. Tapping the trigger three times quickly (within 0.8 seconds) switches the motor&#8217;s direction, so the same trigger can both unscrew and screw the nut.</p>
+        </div>
+
+        <div class="proj-img-container">
+            <img src="./images/project08-test.jpg" alt="Holding the screwdriver by the hub with its axle socket over a nut on one of the two bolts in the wooden test block">
+        </div>
+
+        <div class="proj-desc">
+            <p>In testing, my screwdriver unscrewed the nut, moved it to the other bolt, and screwed it on without dropping it. It worked while I wore bulky gloves, one-handed with my left hand and with my right hand, and with the block held vertical, horizontal, and upside down.</p>
+        </div>
+
+        <div class="proj-video-container">
+            <iframe src="https://www.youtube.com/embed/tXuaJtDsr7I" title="Astronaut Tools gun screwdriver demo" allowfullscreen></iframe>
+        </div>
+
+        <div class="proj-code">
+            <h3>Code:</h3>
+            <pre><code>
+# Setup: Force Sensor on port A and Medium Motor on port B.
+
+from hub import port
+import runloop
+import motor
+import force_sensor
+
+# Set the motor's maximum speed in degrees per second.
+MAX_SPEED = 1100
+
+# A press must reach this force to count as a tap.
+PRESS_THRESHOLD = 5
+
+# All three taps must happen within this many milliseconds.
+TAP_WINDOW_MS = 800
+
+async def main():
+    # Start in anticlockwise direction.
+    direction = -1
+
+    # Keep track of taps and whether the sensor is currently pressed.
+    tap_count = 0
+    sensor_was_pressed = False
+    time_since_first_tap = 0
+
+    # Repeatedly check the force sensor and control the motor.
+    while True:
+        # Read the force sensor's current pressure.
+        force_amount = force_sensor.force(port.A)
+        sensor_is_pressed = force_amount >= PRESS_THRESHOLD
+
+        # Count a tap only when the sensor changes from released to pressed.
+        if sensor_is_pressed and not sensor_was_pressed:
+            if tap_count == 0:
+                time_since_first_tap = 0
+
+            tap_count = tap_count + 1
+
+            # Three quick taps switch the motor's direction.
+            if tap_count == 3:
+                direction = direction * -1
+                tap_count = 0
+                time_since_first_tap = 0
+
+        # Remember the press state so a held press is not counted repeatedly.
+        sensor_was_pressed = sensor_is_pressed
+
+        # Discard an unfinished tap sequence if it takes too long.
+        if tap_count > 0:
+            time_since_first_tap = time_since_first_tap + 20
+            if time_since_first_tap > TAP_WINDOW_MS:
+                tap_count = 0
+                time_since_first_tap = 0
+
+        # Scale the force reading to a speed no greater than 1100.
+        motor_speed = force_amount * 11
+        if motor_speed > MAX_SPEED:
+            motor_speed = MAX_SPEED
+
+        # Run in the selected direction, faster when more force is applied.
+        motor.run(port.B, direction * motor_speed)
+
+        # Pause briefly before checking again.
+        await runloop.sleep_ms(20)
+
+runloop.run(main())
+
+</code></pre></div>
+
+    </div>
+    <!-- End Project Information -->
+
+</body>
+</html>
