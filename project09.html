@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Project 9: Robotic Arm</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" href="./project.css">
+</head>
+<body>
+
+    <!-- Header and Navigation Section -->
+    <header class="header">
+        <nav class="navbar">
+            <a href="./index.html" class="active">Home</a>
+        </nav>
+    </header>
+
+    <!-- Project Information -->
+    <div class="proj-container">
+
+        <h1 class='proj-header'>Project Portfolio</h1>
+
+        <div class="proj-img-container">
+            <img src="./images/project09.jpg" alt="LEGO SPIKE Prime robotic arm on a yellow base: a gripper with two yellow claw arms raised above the hub, a blue ball on the start base, and a bridge of two black beams leading to the end base">
+        </div>
+
+        <h2 class='proj-header'>Project 9: Robotic Arm</h2>
+
+        <div class="proj-desc">
+            <p>The Robotic Arm challenge was to build a robot that picks up a ball from a start base, moves it, and places it on an end base at the other end of the board.</p>
+            <p>My design uses two Medium Motors. Motor D opens and closes a gripper made of two yellow claw arms, and motor B rotates the arm to carry the ball. The arm drops the ball onto a bridge made of two black beams, and the ball then slides down the bridge to the end location.</p>
+            <p>My Python program runs the steps in order. Motor B moves the arm 110&deg; to the pickup position and holds it there. Motor D runs for 7 seconds to close the gripper around the ball and holds it closed. Motor B then rotates the arm 180&deg; anticlockwise, and motor D turns 120&deg; to open the gripper and drop the ball onto the bridge. Finally, motor B turns 90&deg; clockwise.</p>
+        </div>
+
+        <div class="proj-gallery">
+            <img src="./images/project09-gripper.jpg" alt="Close-up of the gripper: gears and two yellow claw arms, with the blue ball on the start base below">
+            <img src="./images/project09-top.jpg" alt="Top-down view of the robot: the gripper reaching down to the blue ball on the start base, and the black-beam bridge running to the end base">
+        </div>
+
+        <div class="proj-video-container">
+            <iframe src="https://www.youtube.com/embed/7R-oK-QZSYw" title="Robotic Arm moving the ball to the bridge" allowfullscreen></iframe>
+        </div>
+
+        <div class="proj-code">
+            <h3>Code:</h3>
+            <pre><code>
+# Setup: medium motors are connected to ports B and D.
+import runloop
+import motor
+from hub import port
+
+# Set the motor speeds and gripper closing time.
+MOTOR_B_SPEED = 200
+MOTOR_D_SPEED = 150
+D_RUN_TIME_MS = 7000
+
+async def main():
+    # Move motor B to the pickup position and hold the arm there.
+    await motor.run_for_degrees(
+        port.B,
+        110,
+        MOTOR_B_SPEED,
+        stop=motor.HOLD
+    )
+
+    # Close the gripper and hold it closed.
+    await motor.run_for_time(
+        port.D,
+        D_RUN_TIME_MS,
+        -MOTOR_D_SPEED,
+        stop=motor.HOLD
+    )
+
+    # Rotate motor B anticlockwise for 180 degrees.
+    await motor.run_for_degrees(port.B, 180, -MOTOR_B_SPEED)
+
+    # Rotate motor D clockwise for 120 degrees.
+    await motor.run_for_degrees(port.D, 120, 800)
+
+    # Move motor B clockwise at the end.
+    await motor.run_for_degrees(port.B, 90, MOTOR_B_SPEED)
+
+runloop.run(main())
+
+</code></pre></div>
+
+    </div>
+    <!-- End Project Information -->
+
+</body>
+</html>
