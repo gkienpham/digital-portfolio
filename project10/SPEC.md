@@ -1,0 +1,68 @@
+# Spec: Project 10 Haunted House — show programs
+
+**Status:** Approved and implemented, final pull length being tuned · **Date:** 2026-10-28
+**Code:** `hub_a_dropper.py`, `hub_b_skull.py`, `hub_c_slide.py` in this folder, using spikecomm 1.2.0 (already on every hub).
+
+## Context
+A 3-hub link test proved that all three hubs hear each other in real time using Beacon mode (`!A`/`!B`/`!C`, message `state;count`, an event = the count going up). The show programs replaced the link test. Every decision below came from the student's instructions plus a grilling Q&A.
+
+| Hub | Part | Ports |
+|---|---|---|
+| A | Dropper | **F** right platform (medium), **B** left platform (medium), **A** top pull-up (large) |
+| B | Skull | **B** and **D** color sensors |
+| C | Slide | **A** candy pusher |
+
+## Show timeline (t = 0 when azure is seen)
+| t | Hub | Action |
+|---|---|---|
+| 0 | B | Either sensor reads azure **once** (no debounce, because the ball only flashes past). B's count +1, then B ignores the sensors until it re-arms |
+| ~0.1 | C | Candy push 180° at 300°/s. Alternates: anticlockwise, clockwise, … (the first push after a program start is always anticlockwise) |
+| 5 | A | Drop: F **+90° clockwise** and B **−90° anticlockwise**, both started at the same moment, 800°/s |
+| 10 | A | Pull-up: port A clockwise for **6.7 s at 800°/s**, ending in **hold** so the knife stays up |
+| 16.7 | A | Wait 2 s |
+| 18.7 | A | Platforms back: F −90°, B +90°, at the same moment, 300°/s (0.7 s allowed) |
+| ~19.4 | A | Release: port A back to the position from before the pull, at **max speed 1050°/s**, so it unwinds exactly what was pulled |
+| ~25 | A | A's count +1 = "ready". B re-arms |
+
+## Functional requirements
+- FR-1 B MUST check both color sensors in a fast loop (about every 5 ms) and trigger on a single `color.AZURE` reading from either one.
+- FR-2 B MUST ignore azure and test triggers while a show is running, and MUST re-arm when A's count goes up **or** 60 s after the trigger, whichever comes first.
+- FR-3 C MUST push candy when B's count goes up, alternating direction each time and starting anticlockwise.
+- FR-4 A MUST run the timeline above on its own clock when B's count goes up, then increase its own count.
+- FR-5 The two platform motors MUST be started back-to-back in the same step for the drop and for the return, so they move as a pair.
+- FR-6 Pressing LEFT on **Hub C** MUST start a show exactly like an azure hit. C's count +1, and B treats it as a trigger, so B stays the only hub that decides when a show starts. LEFT does nothing on A or B.
+- FR-7 Every hub keeps the link screen: ✓ when it hears both other hubs, ✗ otherwise. It prints each step to the console.
+- FR-8 Every speed, time, angle and port MUST be a named setting at the top of its program (the student tunes them while testing).
+
+## Non-functional requirements
+- NFR-1 Candy starts within 0.5 s of the hit (one beacon hop).
+- NFR-2 Beginner-readable code using only spikecomm and the SPIKE App 3 API, with no blocking calls inside callbacks. Motor moves are timed with `time.sleep_ms` in the main loop (callbacks still fire during sleep).
+
+## Acceptance criteria (checked on the real hubs)
+| AC | Criterion | Result |
+|---|---|---|
+| AC-1 | LEFT on Hub C: candy pushes right away, then drop (~5 s), pull-up (~10 s), close, release. Platforms move together | ✅ passed (all motor directions right) |
+| AC-2 | A second show pushes candy the opposite way | ✅ passed |
+| AC-3 | A thrown azure ball hitting either eye starts a show | ✅ passed on both eyes (real-ball shows from sensor D and sensor B) |
+| AC-4 | Hits during a show do nothing. After A's "ready", the next hit starts a new show | ⚠️ re-arm seen in the logs; hits *during* a show not tested on purpose |
+| AC-5 | With A switched off, a hit still pushes candy, B shows ✗, and B re-arms after 60 s | ⬜ not tested |
+
+## Edge cases
+- EC-1 A restarted mid-show: its count goes back to 0, which doesn't count as "ready". B's 60 s timeout re-arms it.
+- EC-2 A program is started while the motors aren't in their start positions. The student sets them first: platforms closed, knife resting on them with slack, pusher at its start (README).
+- EC-3 A motor turns the wrong way (SPIKE's "clockwise" is seen looking at the motor's face). Fix: flip the sign of that setting.
+- EC-4 B starts before A or C: the trigger still counts, and B's timeout covers a missing A.
+
+## Message contract
+| Prefix | `state` | `count` goes up when… | Who reacts |
+|---|---|---|---|
+| `!B` | 0 armed, 1 show running | a show starts (azure or a test trigger) | A runs the timeline, C pushes candy |
+| `!A` | 0 idle, 1 running timeline | the timeline is finished ("ready") | B re-arms |
+| `!C` | 0 | LEFT is pressed (test trigger) | B starts a show if armed |
+
+The first count heard from a hub is only remembered and never acted on, so restarting a hub can't set anything off.
+
+## Out of scope
+- OS-1 Saving the pusher direction across restarts (student chose "always anticlockwise first").
+- OS-2 Sounds and light effects beyond the ✓/✗ screen.
+- OS-3 The `project10.html` portfolio page; git commit or push (only when the student asks).
