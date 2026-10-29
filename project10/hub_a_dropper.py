@@ -1,13 +1,14 @@
 # ===== Project 10 Haunted House: Hub A (Dropper) =====
 # When the skull (Hub B) starts a show, this hub runs the dropper on its own clock:
-#   5 s -> platforms drop -> 5 s -> pull the knife up for 6.7 s -> 2 s
+#   5 s -> platforms drop -> 5 s -> pull the knife up 33.5 turns -> 2 s
 #   -> platforms close -> unwind at full speed (knife rests on the platforms again)
 # Then it tells the skull it is ready for the next show.
+# LEFT button: ask the skull to start a full show (for testing without the ball).
 # Before starting: platforms closed, knife resting on them with slack in the string.
 # Screen: check mark = hearing both other hubs, X = missing one (console says which).
 # Start from the REPL / mpremote run, not the SPIKE App's Run button.
 from spikecomm import Beacon, Scanner
-from hub import port, light_matrix
+from hub import port, button, light_matrix
 import motor
 import time
 
@@ -25,13 +26,13 @@ DROP_SPEED = 800            # degrees per second (fast, for the surprise)
 CLOSE_SPEED = 300           # degrees per second (gentle, under the knife)
 CLOSE_MS = 700              # time to let the platforms close before unwinding
 PULL_SPEED = 800            # degrees per second: + = clockwise = pull up
-PULL_MS = 6700              # how long to pull up
+PULL_TURNS = 33.5           # motor turns to pull up (360 degrees each)
 RELEASE_SPEED = 1050        # degrees per second (the large motor's max) to unwind
 WAIT_BEFORE_DROP_MS = 5000  # after the skull sees the ball
 WAIT_BEFORE_PULL_MS = 5000  # after the drop
 WAIT_BEFORE_CLOSE_MS = 2000 # after the knife is pulled up
 
-state = 0               # 0 = idle, 1 = running the dropper
+state = 0               # 0 = idle, 1 = running the dropper, 2 = test button asked the skull for a show
 count = 0               # +1 every time the dropper finishes ("ready")
 
 # latest["B"] = {"values": [state, count], "time": when it was heard}
@@ -97,7 +98,17 @@ def wait_ms(ms):
         time.sleep_ms(20)
 
 
+was_pressed = False
 while True:
+    # Test button: count each press once, not while it's held
+    pressed = bool(button.pressed(button.LEFT))
+    test_run = pressed and not was_pressed
+    was_pressed = pressed
+
+    if test_run and state == 0:
+        state = 2                       # the skull starts the show, like a ball hit
+        print("Test button: asking the skull to start a show")
+
     if new_event("B"):
         print("Skull hit! Dropping in", WAIT_BEFORE_DROP_MS // 1000, "s")
         state = 1
@@ -111,8 +122,9 @@ while True:
 
         print("Pull up")                # HOLD keeps the knife up afterwards
         string_start = motor.relative_position(PULL_MOTOR)
-        motor.run_for_time(PULL_MOTOR, PULL_MS, PULL_SPEED, stop=motor.HOLD)
-        wait_ms(PULL_MS + WAIT_BEFORE_CLOSE_MS)
+        pull_degrees = int(PULL_TURNS * 360)
+        motor.run_for_degrees(PULL_MOTOR, pull_degrees, PULL_SPEED, stop=motor.HOLD)
+        wait_ms(pull_degrees * 1000 // PULL_SPEED + 500 + WAIT_BEFORE_CLOSE_MS)   # + 0.5 s to speed up and stop
 
         print("Close platforms")        # the opposite way of the drop
         motor.run_for_degrees(RIGHT_PLATFORM, -RIGHT_DROP, CLOSE_SPEED)

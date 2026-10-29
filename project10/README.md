@@ -14,15 +14,16 @@ Photos: `skull.jpg`, `dropper.jpg`.
 ## The show
 
 1. The azure ball hits a skull eye. One azure reading on either sensor is enough.
-2. Right away, the slide pushes one candy (180°, alternating direction each time).
+2. Right away, the slide pushes one candy (one full anticlockwise turn, back to its start).
 3. 5 s later, both platforms turn 90° and the knife drops.
-4. 5 s after the drop, the top motor pulls the knife up for 6.7 s.
+4. 5 s after the drop, the top motor pulls the knife up 33.5 motor turns (about 15 s).
 5. 2 s later, the platforms close. Then the top motor unwinds the same amount
    of string at full speed, so the knife rests on the platforms again.
-6. The skull is armed again for the next throw (about 24 s per show). If the
+6. The skull is armed again for the next throw (about 40 s per show). If the
    dropper doesn't answer, the skull re-arms after 60 s anyway.
 
 **Test without the ball:** press LEFT on Hub C to start a show.
+Pressing LEFT on Hub A does the same.
 
 ## How the hubs talk
 
@@ -37,7 +38,7 @@ see it go up:
 ## Before starting
 
 - Platforms closed, knife resting on them with slack in the string.
-- Candy pusher in its starting position (its first push is always anticlockwise).
+- Candy pusher in its starting position (every push is one full turn back to it).
 
 ## One-time setup
 

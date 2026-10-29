@@ -2,7 +2,7 @@
 # Watches the two color sensors in the skull's eyes. One azure reading on
 # either sensor (the ball only flashes past) starts a show: the count goes up,
 # the slide (Hub C) pushes candy and the dropper (Hub A) runs its timeline.
-# LEFT on Hub C starts a show the same way (for testing without the ball).
+# LEFT on Hub C or Hub A starts a show the same way (for testing without the ball).
 # Hits are ignored until the dropper says it's ready again (or 60 s pass).
 # Screen: check mark = hearing both other hubs, X = missing one (console says which).
 # Start from the REPL / mpremote run, not the SPIKE App's Run button.
@@ -88,6 +88,8 @@ while True:
         hit = None
         if test_pressed:
             hit = "test button on Hub C"
+        if latest["A"]["values"] and latest["A"]["values"][0] == 2:
+            hit = "test button on Hub A"
         for letter in EYES:
             if color_sensor.color(EYES[letter]) == color.AZURE:
                 hit = "azure on sensor " + letter

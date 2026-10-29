@@ -1,7 +1,6 @@
 # ===== Project 10 Haunted House: Hub C (Slide) =====
 # When the skull (Hub B) starts a show, push the next candy down the slide:
-# 180 degrees anticlockwise, then 180 clockwise next time, and so on.
-# The first push after starting this program is always anticlockwise.
+# one full turn (360 degrees) anticlockwise, ending back where it started.
 # LEFT button: start a show without the ball (for testing).
 # Before starting: put the pusher in its starting position.
 # Screen: check mark = hearing both other hubs, X = missing one (console says which).
@@ -17,7 +16,7 @@ LOST_MS = 1500          # nothing heard from a hub for this long = lost
 
 # ----- Settings (tune these while testing) -----
 PUSHER = port.A
-FIRST_PUSH = -180       # degrees: - = anticlockwise; flips every push
+PUSH = -360             # degrees: - = anticlockwise; a full turn ends where it started
 PUSH_SPEED = 300        # degrees per second
 
 state = 0               # always 0 (this hub only reports button presses)
@@ -78,7 +77,6 @@ def show_link():
         screen["shown"] = want
 
 
-push = FIRST_PUSH
 was_pressed = False
 while True:
     # Test button: count each press once, not while it's held
@@ -90,9 +88,8 @@ while True:
     me.broadcast(state, count)          # does nothing if the data didn't change
 
     if new_event("B"):
-        print("Candy push", "anticlockwise" if push < 0 else "clockwise")
-        motor.run_for_degrees(PUSHER, push, PUSH_SPEED)
-        push = -push                    # next push goes the other way
+        print("Candy push")
+        motor.run_for_degrees(PUSHER, PUSH, PUSH_SPEED)
 
     show_link()
     time.sleep_ms(20)

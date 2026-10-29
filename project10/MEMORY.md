@@ -10,7 +10,7 @@ results, and no git actions unless the student asks.
 > I'm continuing Project 10: Haunted House in my portfolio repo. Read
 > `project10/MEMORY.md`, then `project10/SPEC.md` and `project10/README.md`.
 > Three SPIKE Prime hubs run the show with spikecomm Beacon mode, and it works.
-> The pull-up was just changed to 6.7 s and still needs a test. Check with me
+> The pull-up is 33.5 motor turns, tested and confirmed. Check with me
 > where things stand before changing code, and help me with the next step: [describe].
 
 ## Where things stand
@@ -20,15 +20,20 @@ results, and no git actions unless the student asks.
   both eyes (sensors D and B, several shows in a row). The skull re-arms after each show.
   At the end of the last session, Hub B logged `Not hearing ['A']` during show 5.
   Hub A was probably switched off or carried away, but this hasn't been checked.
-- **Being tuned:** the top pull-up time (`PULL_MS` in `hub_a_dropper.py`).
+- **Being tuned:** the top pull-up (`PULL_TURNS` in `hub_a_dropper.py`, by motor turns since 2026-10-29).
   History: 3 s at 500°/s was too short. 10 s at 800°/s was too long (7488°
   measured). 6 s gave 4636° ("better"), 6.5 s gave 5036° ("a bit better").
-  **6.7 s is loaded on Hub A.** One show ran at 6.7 s and measured 5135°, but the
-  student hasn't said yet whether that's the right length. Release is max speed
+  6.7 s measured 5135° and 5197° (about 14.4 turns). On 2026-10-29 the student
+  switched to **33.5 motor turns (12,060°, about 15 s)**. They confirmed they meant
+  the motor itself, not the spool. One full show ran with it (triggered by the skull)
+  and measured 12,061°. The student confirmed 33.5 turns is the right length (2026-10-29).
+  The new LEFT-on-Hub-A trigger hasn't started a show yet. Release is max speed
   (1050°/s) back to the pre-pull position.
 - **Not tested yet:** AC-4 (hits during a show ignored) and AC-5 (Hub A off, 60 s re-arm). See SPEC.md.
-- **Not done:** the `project10.html` portfolio page and home card. Nothing is
-  committed: `project10/` and several `IMG_*` files in the repo root are untracked.
+- **Not done:** the `project10.html` portfolio page and home card.
+- **Git:** `project10/` was committed locally in `1c38d94`, and the 2026-10-29
+  changes are not committed yet. Never push to GitHub. The `IMG_*`, `.mov` and
+  PDF files in the repo root stay out of git (the student's choice).
 
 ## Hardware and tool facts (learned the hard way)
 
@@ -58,8 +63,8 @@ results, and no git actions unless the student asks.
 
 - The hub letters were renamed partway through: **A = Dropper, B = Skull, C = Slide**.
 - One azure reading counts as a hit. The ball bounces off, so there's no debounce and no "ball must leave" re-arm.
-- The test trigger is LEFT on **Hub C**, not Hub B.
-- The candy pusher always starts anticlockwise after a restart. The student resets it by hand.
+- The test trigger is LEFT on **Hub C**, not Hub B. LEFT on **Hub A** (added 2026-10-29) also starts a full show: A broadcasts state 2 and the skull treats it as a trigger.
+- The candy pusher turns one full 360° anticlockwise per show, ending where it started (changed from alternating 180° on 2026-10-29).
 - A runs the whole timeline on its own clock from a single trigger, chosen to keep Bluetooth messages to a minimum.
 - The professor's guide is https://github.com/edanahy/spikecomm. `spikecomm.py` here is an unmodified copy of v1.2.0.
 
