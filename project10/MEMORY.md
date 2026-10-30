@@ -10,7 +10,7 @@ results, and no git actions unless the student asks.
 > I'm continuing Project 10: Haunted House in my portfolio repo. Read
 > `project10/MEMORY.md`, then `project10/SPEC.md` and `project10/README.md`.
 > Three SPIKE Prime hubs run the show with spikecomm Beacon mode, and it works.
-> The pull-up is 33.5 motor turns, tested and confirmed. Check with me
+> The pull-up is 29 motor turns at half speed (ran in shows). The RIGHT emergency stop on Hub A is untested. Check with me
 > where things stand before changing code, and help me with the next step: [describe].
 
 ## Where things stand
@@ -20,19 +20,27 @@ results, and no git actions unless the student asks.
   both eyes (sensors D and B, several shows in a row). The skull re-arms after each show.
   At the end of the last session, Hub B logged `Not hearing ['A']` during show 5.
   Hub A was probably switched off or carried away, but this hasn't been checked.
-- **Being tuned:** the top pull-up (`PULL_TURNS` in `hub_a_dropper.py`, by motor turns since 2026-10-29).
+- **Being tuned:** the top pull-up (`PULL_TURNS` in `hub_a_dropper.py`, by motor turns since 2026-10-29; now 29).
   History: 3 s at 500°/s was too short. 10 s at 800°/s was too long (7488°
   measured). 6 s gave 4636° ("better"), 6.5 s gave 5036° ("a bit better").
   6.7 s measured 5135° and 5197° (about 14.4 turns). On 2026-10-29 the student
   switched to **33.5 motor turns (12,060°, about 15 s)**. They confirmed they meant
   the motor itself, not the spool. One full show ran with it (triggered by the skull)
   and measured 12,061°. The student confirmed 33.5 turns is the right length (2026-10-29).
-  The new LEFT-on-Hub-A trigger hasn't started a show yet. Release is max speed
-  (1050°/s) back to the pre-pull position.
-- **Not tested yet:** AC-4 (hits during a show ignored) and AC-5 (Hub A off, 60 s re-arm). See SPEC.md.
+  On 2026-10-30 they changed it to **29 motor turns (10,440°, about 13 s)**. One show ran with it
+  (started by LEFT on Hub A) and measured 10,439°. The student hasn't confirmed the length yet.
+  The RIGHT emergency stop is loaded but hasn't been pressed during a show yet.
+  LEFT on Hub A has started a full show (2026-10-30). Release went back to the
+  pre-pull position at max speed (1050°/s).
+  On 2026-10-30 the student halved both speeds: pull **400°/s**, unwind **525°/s**.
+  A show now takes about 60 s, so the skull's re-arm timeout went from 60 s to **90 s**. One real-ball show (sensor B)
+  ran with these speeds, and the dropper reported ready before the 90 s timeout.
+  During show 2 the skull logged `Not hearing ['A']` (the cause wasn't confirmed:
+  maybe RIGHT emergency stop or Hub A off), then re-armed after 90 s as designed.
+- **Not tested yet:** AC-4 (hits during a show ignored) and AC-5 (Hub A off, 90 s re-arm). See SPEC.md.
 - **Not done:** the `project10.html` portfolio page and home card.
-- **Git:** `project10/` was committed locally in `1c38d94`, and the 2026-10-29
-  changes are not committed yet. Never push to GitHub. The `IMG_*`, `.mov` and
+- **Git:** `project10/` is committed locally (`1c38d94`, `f1d114b` for 2026-10-29,
+  and a 2026-10-30 commit for 29 turns, half speeds, the 90 s timeout and the emergency stop). Never push to GitHub. The `IMG_*`, `.mov` and
   PDF files in the repo root stay out of git (the student's choice).
 
 ## Hardware and tool facts (learned the hard way)
@@ -64,6 +72,7 @@ results, and no git actions unless the student asks.
 - The hub letters were renamed partway through: **A = Dropper, B = Skull, C = Slide**.
 - One azure reading counts as a hit. The ball bounces off, so there's no debounce and no "ball must leave" re-arm.
 - The test trigger is LEFT on **Hub C**, not Hub B. LEFT on **Hub A** (added 2026-10-29) also starts a full show: A broadcasts state 2 and the skull treats it as a trigger.
+- RIGHT on **Hub A** (added 2026-10-30) is the emergency stop: all three dropper motors stop and A's program ends. The student chose "end the program" over "cancel the show and keep running", so nothing moves until a deliberate restart.
 - The candy pusher turns one full 360° anticlockwise per show, ending where it started (changed from alternating 180° on 2026-10-29).
 - A runs the whole timeline on its own clock from a single trigger, chosen to keep Bluetooth messages to a minimum.
 - The professor's guide is https://github.com/edanahy/spikecomm. `spikecomm.py` here is an unmodified copy of v1.2.0.

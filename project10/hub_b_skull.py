@@ -3,7 +3,7 @@
 # either sensor (the ball only flashes past) starts a show: the count goes up,
 # the slide (Hub C) pushes candy and the dropper (Hub A) runs its timeline.
 # LEFT on Hub C or Hub A starts a show the same way (for testing without the ball).
-# Hits are ignored until the dropper says it's ready again (or 60 s pass).
+# Hits are ignored until the dropper says it's ready again (or 90 s pass).
 # Screen: check mark = hearing both other hubs, X = missing one (console says which).
 # Start from the REPL / mpremote run, not the SPIKE App's Run button.
 from spikecomm import Beacon, Scanner
@@ -18,7 +18,7 @@ LOST_MS = 1500          # nothing heard from a hub for this long = lost
 
 # ----- Settings (tune these while testing) -----
 EYES = {"B": port.B, "D": port.D}   # color sensors, by port letter
-RESET_TIMEOUT_MS = 60000    # re-arm anyway if the dropper never says ready
+RESET_TIMEOUT_MS = 90000    # re-arm anyway if the dropper never says ready (a show takes about 60 s)
 
 state = 0               # 0 = armed (waiting for the ball), 1 = show running
 count = 0               # +1 every time a show starts

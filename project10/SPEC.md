@@ -1,6 +1,6 @@
 # Spec: Project 10 Haunted House — show programs
 
-**Status:** Approved and implemented; pull length confirmed at 33.5 motor turns · **Date:** 2026-10-29
+**Status:** Approved and implemented; pull 29 motor turns at half speed (ran in shows on the hubs) · **Date:** 2026-10-30
 **Code:** `hub_a_dropper.py`, `hub_b_skull.py`, `hub_c_slide.py` in this folder, using spikecomm 1.2.0 (already on every hub).
 
 ## Context
@@ -18,20 +18,21 @@ A 3-hub link test proved that all three hubs hear each other in real time using 
 | 0 | B | Either sensor reads azure **once** (no debounce, because the ball only flashes past). B's count +1, then B ignores the sensors until it re-arms |
 | ~0.1 | C | Candy push: one full turn, 360° anticlockwise at 300°/s, ending where it started (changed from alternating 180° on 2026-10-29) |
 | 5 | A | Drop: F **+90° clockwise** and B **−90° anticlockwise**, both started at the same moment, 800°/s |
-| 10 | A | Pull-up: port A clockwise **33.5 motor turns (12,060°) at 800°/s**, about 15 s, ending in **hold** so the knife stays up (was 6.7 s until 2026-10-29) |
-| ~25.6 | A | Wait 2 s |
-| ~27.6 | A | Platforms back: F −90°, B +90°, at the same moment, 300°/s (0.7 s allowed) |
-| ~28.3 | A | Release: port A back to the position from before the pull, at **max speed 1050°/s**, so it unwinds exactly what was pulled |
-| ~40 | A | A's count +1 = "ready". B re-arms |
+| 10 | A | Pull-up: port A clockwise **29 motor turns (10,440°) at 400°/s**, about 26 s, ending in **hold** so the knife stays up (6.7 s until 2026-10-29, then 33.5 turns until 2026-10-30; 800°/s until 2026-10-30) |
+| ~36.6 | A | Wait 2 s |
+| ~38.6 | A | Platforms back: F −90°, B +90°, at the same moment, 300°/s (0.7 s allowed) |
+| ~39.3 | A | Release: port A back to the position from before the pull, at **525°/s** (half the max; 1050°/s until 2026-10-30), about 20 s, so it unwinds exactly what was pulled |
+| ~60 | A | A's count +1 = "ready". B re-arms |
 
 ## Functional requirements
 - FR-1 B MUST check both color sensors in a fast loop (about every 5 ms) and trigger on a single `color.AZURE` reading from either one.
-- FR-2 B MUST ignore azure and test triggers while a show is running, and MUST re-arm when A's count goes up **or** 60 s after the trigger, whichever comes first.
+- FR-2 B MUST ignore azure and test triggers while a show is running, and MUST re-arm when A's count goes up **or** 90 s after the trigger, whichever comes first.
 - FR-3 C MUST push candy when B's count goes up: 360° anticlockwise, ending back at its start position.
 - FR-4 A MUST run the timeline above on its own clock when B's count goes up, then increase its own count.
 - FR-5 The two platform motors MUST be started back-to-back in the same step for the drop and for the return, so they move as a pair.
 - FR-6 Pressing LEFT on **Hub C** MUST start a show exactly like an azure hit. C's count +1, and B treats it as a trigger, so B stays the only hub that decides when a show starts. LEFT does nothing on B.
 - FR-9 Pressing LEFT on **Hub A** MUST start a full show exactly like FR-6: A's state becomes 2 ("test requested"), and an armed B treats that as a trigger. A then runs its timeline when B's count goes up, as usual. Added 2026-10-29.
+- FR-10 Pressing RIGHT on **Hub A** at any time MUST stop all three dropper motors right away and end A's program (emergency stop). The student sets the knife and platforms back by hand and restarts A. B and C keep running (B re-arms after its 90 s timeout). Added 2026-10-30.
 - FR-7 Every hub keeps the link screen: ✓ when it hears both other hubs, ✗ otherwise. It prints each step to the console.
 - FR-8 Every speed, time, angle and port MUST be a named setting at the top of its program (the student tunes them while testing).
 
@@ -46,10 +47,10 @@ A 3-hub link test proved that all three hubs hear each other in real time using 
 | AC-2 | A second show pushes candy the same full turn and the pusher ends at its start | ⬜ not tested since the 360° change (the old alternating 180° passed) |
 | AC-3 | A thrown azure ball hitting either eye starts a show | ✅ passed on both eyes (real-ball shows from sensor D and sensor B) |
 | AC-4 | Hits during a show do nothing. After A's "ready", the next hit starts a new show | ⚠️ re-arm seen in the logs; hits *during* a show not tested on purpose |
-| AC-5 | With A switched off, a hit still pushes candy, B shows ✗, and B re-arms after 60 s | ⬜ not tested |
+| AC-5 | With A switched off, a hit still pushes candy, B shows ✗, and B re-arms after 90 s | ⬜ not tested |
 
 ## Edge cases
-- EC-1 A restarted mid-show: its count goes back to 0, which doesn't count as "ready". B's 60 s timeout re-arms it.
+- EC-1 A restarted mid-show: its count goes back to 0, which doesn't count as "ready". B's 90 s timeout re-arms it (raised from 60 s on 2026-10-30, when the show grew to about 60 s).
 - EC-2 A program is started while the motors aren't in their start positions. The student sets them first: platforms closed, knife resting on them with slack, pusher at its start (README).
 - EC-3 A motor turns the wrong way (SPIKE's "clockwise" is seen looking at the motor's face). Fix: flip the sign of that setting.
 - EC-4 B starts before A or C: the trigger still counts, and B's timeout covers a missing A.

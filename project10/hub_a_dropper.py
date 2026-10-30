@@ -1,9 +1,11 @@
 # ===== Project 10 Haunted House: Hub A (Dropper) =====
 # When the skull (Hub B) starts a show, this hub runs the dropper on its own clock:
-#   5 s -> platforms drop -> 5 s -> pull the knife up 33.5 turns -> 2 s
-#   -> platforms close -> unwind at full speed (knife rests on the platforms again)
+#   5 s -> platforms drop -> 5 s -> pull the knife up 29 turns -> 2 s
+#   -> platforms close -> unwind (knife rests on the platforms again)
 # Then it tells the skull it is ready for the next show.
 # LEFT button: ask the skull to start a full show (for testing without the ball).
+# RIGHT button: EMERGENCY STOP. All three motors stop and this program ends.
+#   Set the knife and platforms back by hand, then start this program again.
 # Before starting: platforms closed, knife resting on them with slack in the string.
 # Screen: check mark = hearing both other hubs, X = missing one (console says which).
 # Start from the REPL / mpremote run, not the SPIKE App's Run button.
@@ -25,9 +27,9 @@ LEFT_DROP = -90             # degrees to drop: - = anticlockwise
 DROP_SPEED = 800            # degrees per second (fast, for the surprise)
 CLOSE_SPEED = 300           # degrees per second (gentle, under the knife)
 CLOSE_MS = 700              # time to let the platforms close before unwinding
-PULL_SPEED = 800            # degrees per second: + = clockwise = pull up
-PULL_TURNS = 33.5           # motor turns to pull up (360 degrees each)
-RELEASE_SPEED = 1050        # degrees per second (the large motor's max) to unwind
+PULL_SPEED = 400            # degrees per second: + = clockwise = pull up
+PULL_TURNS = 29             # motor turns to pull up (360 degrees each)
+RELEASE_SPEED = 525         # degrees per second to unwind (the large motor's max is 1050)
 WAIT_BEFORE_DROP_MS = 5000  # after the skull sees the ball
 WAIT_BEFORE_PULL_MS = 5000  # after the drop
 WAIT_BEFORE_CLOSE_MS = 2000 # after the knife is pulled up
@@ -90,16 +92,30 @@ def show_link():
         screen["shown"] = want
 
 
+def check_emergency_stop():
+    """RIGHT button: stop every dropper motor and end this program."""
+    if button.pressed(button.RIGHT):
+        motor.stop(RIGHT_PLATFORM)
+        motor.stop(LEFT_PLATFORM)
+        motor.stop(PULL_MOTOR)
+        light_matrix.show_image(light_matrix.IMAGE_NO)
+        print("EMERGENCY STOP: motors stopped, program ended")
+        raise SystemExit
+
+
 def wait_ms(ms):
     """Wait, keeping the screen up to date (Bluetooth keeps working too)."""
     end = time.ticks_add(time.ticks_ms(), ms)
     while time.ticks_diff(end, time.ticks_ms()) > 0:
+        check_emergency_stop()
         show_link()
         time.sleep_ms(20)
 
 
 was_pressed = False
 while True:
+    check_emergency_stop()
+
     # Test button: count each press once, not while it's held
     pressed = bool(button.pressed(button.LEFT))
     test_run = pressed and not was_pressed
@@ -131,7 +147,7 @@ while True:
         motor.run_for_degrees(LEFT_PLATFORM, -LEFT_DROP, CLOSE_SPEED)
         wait_ms(CLOSE_MS)
 
-        # Unwind exactly as much string as was pulled up, at full speed,
+        # Unwind exactly as much string as was pulled up,
         # lowering the knife onto the platforms
         pulled = abs(motor.relative_position(PULL_MOTOR) - string_start)
         print("Unwind", pulled, "degrees")
