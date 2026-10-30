@@ -14,7 +14,7 @@ Photos: `skull.jpg`, `dropper.jpg`.
 ## The show
 
 1. The azure ball hits a skull eye. One azure reading on either sensor is enough.
-2. Right away, the slide pushes one candy (one full anticlockwise turn, back to its start).
+2. Right away, the slide pushes one candy (one full anticlockwise turn at 600°/s, back to its start).
 3. 5 s later, both platforms turn 90° and the knife drops.
 4. 5 s after the drop, the top motor pulls the knife up 29 motor turns (about 26 s).
 5. 2 s later, the platforms close. Then the top motor unwinds the same amount
@@ -25,9 +25,10 @@ Photos: `skull.jpg`, `dropper.jpg`.
 **Test without the ball:** press LEFT on Hub C to start a show.
 Pressing LEFT on Hub A does the same.
 
-**Emergency stop:** press RIGHT on Hub A. The dropper's motors stop and its
-program ends. Set the knife and platforms back by hand, then start
-`hub_a_dropper.py` again.
+**Emergency stop:** press RIGHT on Hub A. The dropper's motors stop and the
+screen shows X. Press LEFT on Hub A to reset: the platforms close, the string
+unwinds back to where it started, and the dropper waits for the next show.
+If the knife was hanging below the platforms, lift it back on top by hand.
 
 ## How the hubs talk
 

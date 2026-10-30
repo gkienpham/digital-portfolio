@@ -17,7 +17,7 @@ LOST_MS = 1500          # nothing heard from a hub for this long = lost
 # ----- Settings (tune these while testing) -----
 PUSHER = port.A
 PUSH = -360             # degrees: - = anticlockwise; a full turn ends where it started
-PUSH_SPEED = 300        # degrees per second
+PUSH_SPEED = 600        # degrees per second
 
 state = 0               # always 0 (this hub only reports button presses)
 count = 0               # +1 for every LEFT press (test trigger)

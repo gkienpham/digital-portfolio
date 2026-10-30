@@ -4,8 +4,9 @@
 #   -> platforms close -> unwind (knife rests on the platforms again)
 # Then it tells the skull it is ready for the next show.
 # LEFT button: ask the skull to start a full show (for testing without the ball).
-# RIGHT button: EMERGENCY STOP. All three motors stop and this program ends.
-#   Set the knife and platforms back by hand, then start this program again.
+# RIGHT button: EMERGENCY STOP. All three motors stop and the dropper waits.
+#   Then LEFT resets it: the platforms close, the string unwinds back to where
+#   it started, and the dropper waits for the next show.
 # Before starting: platforms closed, knife resting on them with slack in the string.
 # Screen: check mark = hearing both other hubs, X = missing one (console says which).
 # Start from the REPL / mpremote run, not the SPIKE App's Run button.
@@ -92,15 +93,17 @@ def show_link():
         screen["shown"] = want
 
 
+class EmergencyStop(Exception):
+    """Raised when RIGHT is pressed, to leave the show right away."""
+
+
 def check_emergency_stop():
-    """RIGHT button: stop every dropper motor and end this program."""
+    """RIGHT button: stop every dropper motor and leave the show."""
     if button.pressed(button.RIGHT):
         motor.stop(RIGHT_PLATFORM)
         motor.stop(LEFT_PLATFORM)
         motor.stop(PULL_MOTOR)
-        light_matrix.show_image(light_matrix.IMAGE_NO)
-        print("EMERGENCY STOP: motors stopped, program ended")
-        raise SystemExit
+        raise EmergencyStop
 
 
 def wait_ms(ms):
@@ -112,51 +115,97 @@ def wait_ms(ms):
         time.sleep_ms(20)
 
 
+# Where each motor starts (platforms closed, string slack). LEFT after an
+# emergency stop moves them back here.
+home = {}
+for p in (RIGHT_PLATFORM, LEFT_PLATFORM, PULL_MOTOR):
+    home[p] = motor.relative_position(p)
+
+
+def reset_after_stop():
+    """Stay stopped until LEFT is pressed, then move every motor back to
+    where it started: the platforms close first, then the string unwinds."""
+    light_matrix.show_image(light_matrix.IMAGE_NO)
+    screen["shown"] = None              # redraw the link screen after the reset
+    print("EMERGENCY STOP: motors stopped. Press LEFT to reset")
+    while not button.pressed(button.LEFT):
+        time.sleep_ms(20)
+
+    print("Reset: closing the platforms")
+    turn = max(abs(motor.relative_position(RIGHT_PLATFORM) - home[RIGHT_PLATFORM]),
+               abs(motor.relative_position(LEFT_PLATFORM) - home[LEFT_PLATFORM]))
+    motor.run_to_relative_position(RIGHT_PLATFORM, home[RIGHT_PLATFORM], CLOSE_SPEED)
+    motor.run_to_relative_position(LEFT_PLATFORM, home[LEFT_PLATFORM], CLOSE_SPEED)
+    wait_ms(turn * 1000 // CLOSE_SPEED + 500)   # + 0.5 s to speed up and stop
+
+    unwind = abs(motor.relative_position(PULL_MOTOR) - home[PULL_MOTOR])
+    print("Reset: unwinding", unwind, "degrees")
+    motor.run_to_relative_position(PULL_MOTOR, home[PULL_MOTOR], RELEASE_SPEED)
+    wait_ms(unwind * 1000 // RELEASE_SPEED + 500)
+
+
+def run_show():
+    """The dropper's part of the show, on its own clock."""
+    global state
+    print("Skull hit! Dropping in", WAIT_BEFORE_DROP_MS // 1000, "s")
+    state = 1
+    me.broadcast(state, count)
+    wait_ms(WAIT_BEFORE_DROP_MS)
+
+    print("Drop")                       # both platforms start together
+    motor.run_for_degrees(RIGHT_PLATFORM, RIGHT_DROP, DROP_SPEED)
+    motor.run_for_degrees(LEFT_PLATFORM, LEFT_DROP, DROP_SPEED)
+    wait_ms(WAIT_BEFORE_PULL_MS)
+
+    print("Pull up")                    # HOLD keeps the knife up afterwards
+    string_start = motor.relative_position(PULL_MOTOR)
+    pull_degrees = int(PULL_TURNS * 360)
+    motor.run_for_degrees(PULL_MOTOR, pull_degrees, PULL_SPEED, stop=motor.HOLD)
+    wait_ms(pull_degrees * 1000 // PULL_SPEED + 500 + WAIT_BEFORE_CLOSE_MS)   # + 0.5 s to speed up and stop
+
+    print("Close platforms")            # the opposite way of the drop
+    motor.run_for_degrees(RIGHT_PLATFORM, -RIGHT_DROP, CLOSE_SPEED)
+    motor.run_for_degrees(LEFT_PLATFORM, -LEFT_DROP, CLOSE_SPEED)
+    wait_ms(CLOSE_MS)
+
+    # Unwind exactly as much string as was pulled up,
+    # lowering the knife onto the platforms
+    pulled = abs(motor.relative_position(PULL_MOTOR) - string_start)
+    print("Unwind", pulled, "degrees")
+    motor.run_to_relative_position(PULL_MOTOR, string_start, RELEASE_SPEED)
+    wait_ms(pulled * 1000 // RELEASE_SPEED + 500)   # + 0.5 s to speed up and stop
+
+
 was_pressed = False
 while True:
-    check_emergency_stop()
+    try:
+        check_emergency_stop()
 
-    # Test button: count each press once, not while it's held
-    pressed = bool(button.pressed(button.LEFT))
-    test_run = pressed and not was_pressed
-    was_pressed = pressed
+        # Test button: count each press once, not while it's held
+        pressed = bool(button.pressed(button.LEFT))
+        test_run = pressed and not was_pressed
+        was_pressed = pressed
 
-    if test_run and state == 0:
-        state = 2                       # the skull starts the show, like a ball hit
-        print("Test button: asking the skull to start a show")
+        if test_run and state == 0:
+            state = 2                   # the skull starts the show, like a ball hit
+            print("Test button: asking the skull to start a show")
 
-    if new_event("B"):
-        print("Skull hit! Dropping in", WAIT_BEFORE_DROP_MS // 1000, "s")
-        state = 1
-        me.broadcast(state, count)
-        wait_ms(WAIT_BEFORE_DROP_MS)
-
-        print("Drop")                   # both platforms start together
-        motor.run_for_degrees(RIGHT_PLATFORM, RIGHT_DROP, DROP_SPEED)
-        motor.run_for_degrees(LEFT_PLATFORM, LEFT_DROP, DROP_SPEED)
-        wait_ms(WAIT_BEFORE_PULL_MS)
-
-        print("Pull up")                # HOLD keeps the knife up afterwards
-        string_start = motor.relative_position(PULL_MOTOR)
-        pull_degrees = int(PULL_TURNS * 360)
-        motor.run_for_degrees(PULL_MOTOR, pull_degrees, PULL_SPEED, stop=motor.HOLD)
-        wait_ms(pull_degrees * 1000 // PULL_SPEED + 500 + WAIT_BEFORE_CLOSE_MS)   # + 0.5 s to speed up and stop
-
-        print("Close platforms")        # the opposite way of the drop
-        motor.run_for_degrees(RIGHT_PLATFORM, -RIGHT_DROP, CLOSE_SPEED)
-        motor.run_for_degrees(LEFT_PLATFORM, -LEFT_DROP, CLOSE_SPEED)
-        wait_ms(CLOSE_MS)
-
-        # Unwind exactly as much string as was pulled up,
-        # lowering the knife onto the platforms
-        pulled = abs(motor.relative_position(PULL_MOTOR) - string_start)
-        print("Unwind", pulled, "degrees")
-        motor.run_to_relative_position(PULL_MOTOR, string_start, RELEASE_SPEED)
-        wait_ms(pulled * 1000 // RELEASE_SPEED + 500)   # + 0.5 s to speed up and stop
-
+        if new_event("B"):
+            run_show()
+            state = 0
+            count += 1
+            print("Ready for the next show")
+    except EmergencyStop:
+        while True:
+            try:
+                reset_after_stop()
+                break
+            except EmergencyStop:       # RIGHT again during the reset: stop and wait again
+                pass
         state = 0
-        count += 1
-        print("Ready for the next show")
+        count += 1                      # tells the skull the dropper is ready again
+        was_pressed = True              # the LEFT press that reset isn't a test show
+        print("Reset done. Ready for the next show")
     me.broadcast(state, count)          # does nothing if the data didn't change
     show_link()
     time.sleep_ms(20)

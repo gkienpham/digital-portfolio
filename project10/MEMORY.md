@@ -10,7 +10,7 @@ results, and no git actions unless the student asks.
 > I'm continuing Project 10: Haunted House in my portfolio repo. Read
 > `project10/MEMORY.md`, then `project10/SPEC.md` and `project10/README.md`.
 > Three SPIKE Prime hubs run the show with spikecomm Beacon mode, and it works.
-> The pull-up is 29 motor turns at half speed (ran in shows). The RIGHT emergency stop on Hub A is untested. Check with me
+> The pull-up is 29 motor turns at half speed (ran in shows). RIGHT on Hub A is the emergency stop and LEFT afterwards resets the dropper (reset not tested yet). Check with me
 > where things stand before changing code, and help me with the next step: [describe].
 
 ## Where things stand
@@ -29,7 +29,7 @@ results, and no git actions unless the student asks.
   and measured 12,061°. The student confirmed 33.5 turns is the right length (2026-10-29).
   On 2026-10-30 they changed it to **29 motor turns (10,440°, about 13 s)**. One show ran with it
   (started by LEFT on Hub A) and measured 10,439°. The student hasn't confirmed the length yet.
-  The RIGHT emergency stop is loaded but hasn't been pressed during a show yet.
+  The RIGHT emergency stop was pressed during a pull on 2026-10-30: the motors stopped and A's program ended (log: `EMERGENCY STOP: motors stopped, program ended`).
   LEFT on Hub A has started a full show (2026-10-30). Release went back to the
   pre-pull position at max speed (1050°/s).
   On 2026-10-30 the student halved both speeds: pull **400°/s**, unwind **525°/s**.
@@ -72,7 +72,8 @@ results, and no git actions unless the student asks.
 - The hub letters were renamed partway through: **A = Dropper, B = Skull, C = Slide**.
 - One azure reading counts as a hit. The ball bounces off, so there's no debounce and no "ball must leave" re-arm.
 - The test trigger is LEFT on **Hub C**, not Hub B. LEFT on **Hub A** (added 2026-10-29) also starts a full show: A broadcasts state 2 and the skull treats it as a trigger.
-- RIGHT on **Hub A** (added 2026-10-30) is the emergency stop: all three dropper motors stop and A's program ends. The student chose "end the program" over "cancel the show and keep running", so nothing moves until a deliberate restart.
+- RIGHT on **Hub A** (added 2026-10-30) is the emergency stop: all three dropper motors stop. It first ended the program; the student then asked for LEFT to cancel it and chose "reset, then wait": LEFT closes the platforms, unwinds the string to where it was when A's program started, and waits for the next show. A takes its start positions as "home", so set the knife and platforms before starting A.
+- The candy pusher runs at 600°/s (doubled from 300 on 2026-10-30).
 - The candy pusher turns one full 360° anticlockwise per show, ending where it started (changed from alternating 180° on 2026-10-29).
 - A runs the whole timeline on its own clock from a single trigger, chosen to keep Bluetooth messages to a minimum.
 - The professor's guide is https://github.com/edanahy/spikecomm. `spikecomm.py` here is an unmodified copy of v1.2.0.
