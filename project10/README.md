@@ -25,6 +25,9 @@ Photos: `skull.jpg`, `dropper.jpg`.
 **Test without the ball:** press LEFT on Hub C to start a show.
 Pressing LEFT on Hub A does the same.
 
+**Extra candy:** press RIGHT on Hub C to push one candy (one full turn) at any
+time, without starting a show.
+
 **Emergency stop:** press RIGHT on Hub A. The dropper's motors stop and the
 screen shows X. Press LEFT on Hub A to reset: the platforms close, the string
 unwinds back to where it started, and the dropper waits for the next show.

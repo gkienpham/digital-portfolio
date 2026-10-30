@@ -1,85 +1,123 @@
 # Project 10 Haunted House: session memory / handoff
 
-Last updated: 2026-10-28. Read this first, then `SPEC.md` (requirements, timeline,
-message contract, test results) and `README.md` (how to set up and run the hubs).
-The repo rules in `../AGENTS.md` apply: student portfolio, never invent work or
-results, and no git actions unless the student asks.
+Last updated: 2026-10-30. Read this first, then `SPEC.md` (requirements, timeline,
+message contract, acceptance-test results, edge cases) and `README.md` (how to set
+up and run the hubs). The code is `hub_a_dropper.py`, `hub_b_skull.py` and
+`hub_c_slide.py`. The repo rules in `../AGENTS.md` apply: this is a student
+portfolio, so never invent work or results, and take no git actions unless the
+student asks.
 
 ## Pickup prompt (paste into a new Claude session)
 
-> I'm continuing Project 10: Haunted House in my portfolio repo. Read
-> `project10/MEMORY.md`, then `project10/SPEC.md` and `project10/README.md`.
-> Three SPIKE Prime hubs run the show with spikecomm Beacon mode, and it works.
-> The pull-up is 29 motor turns at half speed (ran in shows). RIGHT on Hub A is the emergency stop and LEFT afterwards resets the dropper (reset not tested yet). Check with me
-> where things stand before changing code, and help me with the next step: [describe].
+> I'm continuing Project 10: Haunted House in my portfolio repo
+> (`~/Documents/digital-portfolio`). Read `project10/MEMORY.md` first, then
+> `project10/SPEC.md` and `project10/README.md`. Three LEGO SPIKE Prime hubs
+> (A = Dropper, B = Skull, C = Candy pusher) run the show over Bluetooth with
+> spikecomm Beacon mode, and the full show works. I have one USB cable and plug
+> in one hub at a time. Check with me where things stand before changing code,
+> commit only locally when I ask (never push to GitHub), and help me with the
+> next step: [describe].
 
-## Where things stand
+## Where things stand (2026-10-30)
 
-- **Working on the real hubs:** the link test, then the full show from the Hub C
-  LEFT test button (all motor directions correct) and from a real azure ball on
-  both eyes (sensors D and B, several shows in a row). The skull re-arms after each show.
-  At the end of the last session, Hub B logged `Not hearing ['A']` during show 5.
-  Hub A was probably switched off or carried away, but this hasn't been checked.
-- **Being tuned:** the top pull-up (`PULL_TURNS` in `hub_a_dropper.py`, by motor turns since 2026-10-29; now 29).
-  History: 3 s at 500°/s was too short. 10 s at 800°/s was too long (7488°
-  measured). 6 s gave 4636° ("better"), 6.5 s gave 5036° ("a bit better").
-  6.7 s measured 5135° and 5197° (about 14.4 turns). On 2026-10-29 the student
-  switched to **33.5 motor turns (12,060°, about 15 s)**. They confirmed they meant
-  the motor itself, not the spool. One full show ran with it (triggered by the skull)
-  and measured 12,061°. The student confirmed 33.5 turns is the right length (2026-10-29).
-  On 2026-10-30 they changed it to **29 motor turns (10,440°, about 13 s)**. One show ran with it
-  (started by LEFT on Hub A) and measured 10,439°. The student hasn't confirmed the length yet.
-  The RIGHT emergency stop was pressed during a pull on 2026-10-30: the motors stopped and A's program ended (log: `EMERGENCY STOP: motors stopped, program ended`).
-  LEFT on Hub A has started a full show (2026-10-30). Release went back to the
-  pre-pull position at max speed (1050°/s).
-  On 2026-10-30 the student halved both speeds: pull **400°/s**, unwind **525°/s**.
-  A show now takes about 60 s, so the skull's re-arm timeout went from 60 s to **90 s**. One real-ball show (sensor B)
-  ran with these speeds, and the dropper reported ready before the 90 s timeout.
-  During show 2 the skull logged `Not hearing ['A']` (the cause wasn't confirmed:
-  maybe RIGHT emergency stop or Hub A off), then re-armed after 90 s as designed.
-- **Not tested yet:** AC-4 (hits during a show ignored) and AC-5 (Hub A off, 90 s re-arm). See SPEC.md.
-- **Not done:** the `project10.html` portfolio page and home card.
-- **Git:** `project10/` is committed locally (`1c38d94`, `f1d114b` for 2026-10-29,
-  and a 2026-10-30 commit for 29 turns, half speeds, the 90 s timeout and the emergency stop). Never push to GitHub. The `IMG_*`, `.mov` and
-  PDF files in the repo root stay out of git (the student's choice).
+- **Works on the real hubs:**
+  - full shows from a real azure ball (both eyes) and from LEFT on Hub C or Hub A
+  - 29-turn pull at half speed (10,440° measured every time) and the matching unwind
+  - the skull re-arming after each show
+  - RIGHT on Hub A stopping the motors
+  - RIGHT on Hub C pushing candy without a show
+  - per-AC results are in `SPEC.md`
+- **Loaded but not tested:**
+  - LEFT on Hub A resetting the dropper after an emergency stop (AC-7)
+  - a RIGHT press on Hub C *during* a show (AC-8)
+  - AC-4: hits during a show are ignored
+  - AC-5: with Hub A off, B re-arms after 90 s. This happened by accident, but wasn't run as a test.
+- **Pull length:** the student hasn't explicitly confirmed 29 turns. Tuning
+  history is in the timeline footnotes in `SPEC.md`:
+  - 6.7 s
+  - then 33.5 turns
+  - then 29 turns
+  - then speeds halved
+- **Git:** local commits only.
+  - `1c38d94`: first version
+  - `f1d114b`: 2026-10-29
+  - `3f659f6`: 29 turns, half speed, 90 s, emergency stop
+  - `db883ef`: LEFT reset, 600°/s candy
+  - a 2026-10-30 commit for the Hub C RIGHT candy button and this handoff (see `git log`)
+  - `main` is ahead of `origin/main`. Never push.
+  - The `IMG_*`, `.mov` and PDF files in the repo root stay out of git (the student's choice).
+- **Not done:** the `project10.html` portfolio page and home-page card.
 
 ## Hardware and tool facts (learned the hard way)
 
-| Hub | Part | USB port (the name comes from the hub's serial) |
+| Hub | Part | USB port (named after the hub's serial) |
 |---|---|---|
 | A | Dropper | `/dev/cu.usbmodem203D306F52301` |
 | B | Skull | `/dev/cu.usbmodem3367395933381` |
-| C | Slide | `/dev/cu.usbmodem365B377C32381` |
+| C | Candy pusher (slide) | `/dev/cu.usbmodem365B377C32381` |
 
-- `mpremote` 1.29 is installed in the conda Python (`pip3 install mpremote`).
-  `mpremote connect list | grep LEGO` shows which hubs are plugged in.
-- A hub only shows up on USB when it is **switched on** and the cable carries
-  data. This came up several times: ask the student to turn the hub on or reseat the cable.
-- Start or restart a program with `mpremote connect <port> soft-reset run <file>`,
-  run in the background. Stop any old `mpremote` process on that port first
-  (`pkill -f "mpremote connect <port>"`). Unplugging ends mpremote with
-  `OSError: [Errno 6] Device not configured`. That's harmless, and the program keeps running.
-- spikecomm programs **must** start from the REPL or mpremote, never the SPIKE App's Run button.
-- Firmware checks: `color.AZURE == 4`, `motor.HOLD == 2`, and
-  `motor.run_to_relative_position` exists. Hubs need about 3–8 s after starting before they print `Hearing [...]`.
-- When reading background output files, cat the specific task file. Don't use
-  `ls -t | head -1 | xargs cat`: it once picked its own output file and hung.
-- Student's workflow: one hub at a time on one cable. Hub B (and A) can stay
-  plugged in during tests so their logs show `Show N started: …`, `Unwind N degrees`, and so on.
+- `mpremote` 1.29 is in the conda Python. `mpremote connect list | grep LEGO`
+  shows which hub is plugged in. A hub only shows up when it's switched on, and it
+  can take a few seconds after plugging in, so retry the listing for up to 10 s.
+- **Start a program:** `pkill -f "mpremote connect <port>"`, then
+  `mpremote connect <port> soft-reset run <file>` in the background (from
+  `project10/`). The hub prints `Hearing [...]` once it hears both other hubs,
+  usually within 3–10 s.
+- **Turning a hub on does NOT start its program.** After the student power-cycles
+  hubs, each one has to be plugged in and started again. This came up many times.
+- **Unplugging is fine.** mpremote exits with `OSError: [Errno 6] Device not
+  configured`, but the program keeps running on battery.
+- **The link screen needs both other hubs.** `Hearing`/`Not hearing` only prints
+  when the ✓/✗ status changes. A hub that hears one other hub but not the second
+  stays on `Not hearing [both]`. To see exactly who is broadcasting, run a
+  one-shot scan from the plugged-in hub:
+  `mpremote connect <port> exec "from spikecomm import Scanner; print(Scanner('!B').read(timeout=3000))"`.
+  It returns `[state, count]` or `None`. This **stops that hub's program**, so
+  restart it afterwards.
+- **A hub started mid-show ignores that show.** The first count heard from a hub
+  is only remembered, which is the protection against restarts. If the ball is
+  hit while a hub is still starting, that hub sits the show out. The skull then
+  waits for its 90 s timeout. This explained "the dropper isn't dropping".
+- **Hub A treats its motor positions at program start as "home"** for the LEFT
+  reset. Make sure the platforms are closed and the knife is resting on them
+  before starting A.
+- spikecomm programs must start from mpremote or the REPL, never the SPIKE App's
+  Run button.
+- Firmware has `color.AZURE == 4`, `motor.HOLD`, `motor.stop`,
+  `motor.run_to_relative_position` and `button.RIGHT`/`button.LEFT`.
+- When waiting on background output, cat the specific task file. Never use
+  `ls -t | head -1`, which once picked its own output file and hung.
 
 ## Student decisions not obvious from the code
 
-- The hub letters were renamed partway through: **A = Dropper, B = Skull, C = Slide**.
-- One azure reading counts as a hit. The ball bounces off, so there's no debounce and no "ball must leave" re-arm.
-- The test trigger is LEFT on **Hub C**, not Hub B. LEFT on **Hub A** (added 2026-10-29) also starts a full show: A broadcasts state 2 and the skull treats it as a trigger.
-- RIGHT on **Hub A** (added 2026-10-30) is the emergency stop: all three dropper motors stop. It first ended the program; the student then asked for LEFT to cancel it and chose "reset, then wait": LEFT closes the platforms, unwinds the string to where it was when A's program started, and waits for the next show. A takes its start positions as "home", so set the knife and platforms before starting A.
-- The candy pusher runs at 600°/s (doubled from 300 on 2026-10-30).
-- The candy pusher turns one full 360° anticlockwise per show, ending where it started (changed from alternating 180° on 2026-10-29).
-- A runs the whole timeline on its own clock from a single trigger, chosen to keep Bluetooth messages to a minimum.
-- The professor's guide is https://github.com/edanahy/spikecomm. `spikecomm.py` here is an unmodified copy of v1.2.0.
+- The hub letters were renamed early on: **A = Dropper, B = Skull, C = Slide/candy pusher**.
+- One azure reading counts as a hit. The ball bounces off, so there's no debounce.
+- B is the only hub that starts shows. Test triggers ask B for a show:
+  - LEFT on C raises C's count
+  - LEFT on A sets A's state to 2
+- **Hub A buttons:**
+  - RIGHT is the emergency stop: all three motors stop and the screen shows ✗.
+  - LEFT after a stop is "reset, then wait": the platforms close, the string
+    unwinds to home, A reports ready and waits. The student chose this over
+    "end the program" and over "resume the show".
+- **Hub C buttons:**
+  - RIGHT pushes one candy any time and does nothing else.
+  - LEFT starts a test show.
+  - Once a hub-LEFT press was taken for the student's "right", so if button
+    confusion comes up, ask whether the hub is mounted rotated.
+- Candy push: 360° anticlockwise at 600°/s, ending at its start. Pushes add up from
+  a target position, so overlapping presses still end at the start.
+- The dropper runs its whole timeline on its own clock from one trigger, to keep
+  Bluetooth messages to a minimum.
+- Professor's guide: https://github.com/edanahy/spikecomm. `spikecomm.py` is an
+  unmodified copy of v1.2.0.
 
 ## Suggested skills
 
-- `engineering-advanced-skills:spec-driven-workflow`: the student asked for it. Update `SPEC.md` before changing behavior.
-- `mattpocock-skills:grilling`: the student asked for it when giving new instructions. Ask one decision at a time, each with a recommendation.
-- `anthropic-skills:built-in-browser`: for previewing a `project10.html` portfolio page. Follow the auto-memory note `portfolio-browser-preview` and use a temporary `http.server`, not `file://`.
+- `engineering-advanced-skills:spec-driven-workflow`: the student asked for it.
+  Update `SPEC.md` (FRs, ACs, edge cases) before changing behavior.
+- `mattpocock-skills:grilling`: when new instructions leave a real choice, ask
+  one decision at a time, each with a recommendation.
+- `anthropic-skills:built-in-browser`: for previewing a `project10.html`
+  portfolio page. Use a temporary `http.server` (see the auto-memory note
+  `portfolio-browser-preview`), not `file://`.

@@ -34,6 +34,7 @@ A 3-hub link test proved that all three hubs hear each other in real time using 
 - FR-9 Pressing LEFT on **Hub A** MUST start a full show exactly like FR-6: A's state becomes 2 ("test requested"), and an armed B treats that as a trigger. A then runs its timeline when B's count goes up, as usual. Added 2026-10-29.
 - FR-10 Pressing RIGHT on **Hub A** at any time MUST stop all three dropper motors right away and leave the show (emergency stop). A then waits, motors stopped, until LEFT is pressed. B and C keep running (B re-arms after its 90 s timeout). Added 2026-10-30.
 - FR-11 After an emergency stop, pressing LEFT on **Hub A** MUST reset the dropper: both platforms go back to where they were when A's program started (closed), then the pull-up motor unwinds back to its start position. A's count then goes up ("ready") and A waits for the next show. That LEFT press MUST NOT also start a test show. RIGHT during the reset stops it again. Added 2026-10-30 (replaces "the stop ends the program").
+- FR-12 Pressing RIGHT on **Hub C** at any time MUST push one candy (360° anticlockwise) without starting a show. A press during a push adds one more full turn, so the pusher always ends at its start position. Added 2026-10-30.
 - FR-7 Every hub keeps the link screen: ✓ when it hears both other hubs, ✗ otherwise. It prints each step to the console.
 - FR-8 Every speed, time, angle and port MUST be a named setting at the top of its program (the student tunes them while testing).
 
@@ -49,6 +50,7 @@ A 3-hub link test proved that all three hubs hear each other in real time using 
 | AC-3 | A thrown azure ball hitting either eye starts a show | ✅ passed on both eyes (real-ball shows from sensor D and sensor B) |
 | AC-4 | Hits during a show do nothing. After A's "ready", the next hit starts a new show | ⚠️ re-arm seen in the logs; hits *during* a show not tested on purpose |
 | AC-6 | RIGHT on Hub A during a show stops the dropper motors (FR-10) | ✅ motors stopped when pressed during the pull (2026-10-30, while the stop still ended the program) |
+| AC-8 | RIGHT on Hub C pushes one candy without a show, including during a show (FR-12) | ✅ RIGHT presses logged `Candy button: push` with no show request (2026-10-30); a press *during* a show not checked |
 | AC-7 | After a stop, LEFT on Hub A closes the platforms, unwinds the string to its start, and the next ball runs a normal show (FR-11) | ⬜ not tested |
 | AC-5 | With A switched off, a hit still pushes candy, B shows ✗, and B re-arms after 90 s | ⬜ not tested |
 

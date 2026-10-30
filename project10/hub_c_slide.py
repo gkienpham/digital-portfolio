@@ -2,6 +2,8 @@
 # When the skull (Hub B) starts a show, push the next candy down the slide:
 # one full turn (360 degrees) anticlockwise, ending back where it started.
 # LEFT button: start a show without the ball (for testing).
+# RIGHT button: push one candy right away (no show). Works any time; a press
+#   during a push adds one more full turn.
 # Before starting: put the pusher in its starting position.
 # Screen: check mark = hearing both other hubs, X = missing one (console says which).
 # Start from the REPL / mpremote run, not the SPIKE App's Run button.
@@ -77,7 +79,19 @@ def show_link():
         screen["shown"] = want
 
 
+# Where the pusher should end up. Each push adds one full turn, so pushes that
+# overlap still finish back at the starting position.
+target = motor.relative_position(PUSHER)
+
+
+def push_candy():
+    global target
+    target += PUSH
+    motor.run_to_relative_position(PUSHER, target, PUSH_SPEED)
+
+
 was_pressed = False
+was_right = False
 while True:
     # Test button: count each press once, not while it's held
     pressed = bool(button.pressed(button.LEFT))
@@ -87,9 +101,16 @@ while True:
     was_pressed = pressed
     me.broadcast(state, count)          # does nothing if the data didn't change
 
+    # Candy button: one push, no show
+    right = bool(button.pressed(button.RIGHT))
+    if right and not was_right:
+        print("Candy button: push")
+        push_candy()
+    was_right = right
+
     if new_event("B"):
         print("Candy push")
-        motor.run_for_degrees(PUSHER, PUSH, PUSH_SPEED)
+        push_candy()
 
     show_link()
     time.sleep_ms(20)
