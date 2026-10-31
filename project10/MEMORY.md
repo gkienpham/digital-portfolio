@@ -15,7 +15,7 @@ student asks.
 > (A = Dropper, B = Skull, C = Candy pusher) run the show over Bluetooth with
 > spikecomm Beacon mode, and the full show works. I have one USB cable and plug
 > in one hub at a time. Check with me where things stand before changing code,
-> commit only locally when I ask (never push to GitHub), and help me with the
+> commit or push to GitHub only when I ask, and help me with the
 > next step: [describe].
 
 ## Where things stand (2026-10-30)
@@ -55,7 +55,7 @@ student asks.
   - `3f659f6`: 29 turns, half speed, 90 s, emergency stop
   - `db883ef`: LEFT reset, 600°/s candy
   - a 2026-10-30 commit for the Hub C RIGHT candy button and this handoff (see `git log`)
-  - `main` is ahead of `origin/main`. Never push.
+  - Push only when the student asks (first push: 2026-10-30).
   - The `IMG_*`, `.mov` and PDF files in the repo root stay out of git (the student's choice).
 - **Project finished (2026-10-30).** Final settings: 19.5-turn pull, any-color
   trigger. The portfolio page `../project10.html` and its home-page card are
@@ -63,9 +63,10 @@ student asks.
   booth crop from IMG_7731 (no faces), plus cutouts from IMG_7733,
   `dropper.jpg` and `skull.jpg`. The page's code blocks are copies of the
   `hub_*.py` files, so if the code changes, update the page too.
-- **YouTube video `JhY2_mKiFgQ` was Private** when the page was built. The embed
-  shows "This video is private" until the student sets it to Unlisted or Public
-  in YouTube Studio.
+- **YouTube video `JhY2_mKiFgQ`** was Private when the page was built. The
+  student set it to Unlisted on 2026-10-30, so the embed plays.
+- **Git:** pushed to `origin/main` (GitHub Pages) on 2026-10-30 at the
+  student's request.
 
 ## Hardware and tool facts (learned the hard way)
 
