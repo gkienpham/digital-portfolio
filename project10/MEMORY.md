@@ -21,7 +21,7 @@ student asks.
 ## Where things stand (2026-10-30)
 
 - **Works on the real hubs:**
-  - full shows from a real azure ball (both eyes) and from LEFT on Hub C or Hub A
+  - full shows from a real azure ball (both eyes, before the any-color change) and from LEFT on Hub C or Hub A
   - 29-turn pull at half speed (10,440° measured every time) and the matching unwind
   - the skull re-arming after each show
   - RIGHT on Hub A stopping the motors
@@ -32,12 +32,23 @@ student asks.
   - a RIGHT press on Hub C *during* a show (AC-8)
   - AC-4: hits during a show are ignored
   - AC-5: with Hub A off, B re-arms after 90 s. This happened by accident, but wasn't run as a test.
-- **Pull length:** the student hasn't explicitly confirmed 29 turns. Tuning
-  history is in the timeline footnotes in `SPEC.md`:
+- **Pull length:** **19.5 turns** (7,020°) since 2026-10-30, running on Hub A but not run
+  in a show yet. Before that, 28.5 was loaded but never run; 26 ran one show
+  (unwind 9,358°, then RIGHT during the unwind); 20 ran two full shows (unwind
+  7,200° and 7,201°); 19 ran three shows; then 20 again (one show started, its
+  end not seen in the log). During the 19-turn shows, RIGHT then LEFT
+  on Hub A logged `Reset: unwinding 1398 degrees` / `Reset done`, then a
+  normal show ran (AC-7 evidence; not recorded in `SPEC.md` until the student
+  OKs it). Tuning history is in the timeline footnotes in `SPEC.md`:
   - 6.7 s
   - then 33.5 turns
   - then 29 turns
   - then speeds halved
+  - then 28.5 turns, then 26 turns, then 20 turns, then 19 turns, then 20 again, then 19.5 turns
+- **Any-color trigger** (`hub_b_skull.py`, `NOT_A_BALL` setting, SPEC
+  FR-1/AC-3/EC-7) is running on Hub B since 2026-10-30. Both empty eyes read
+  `color.UNKNOWN` (-1) 400 of 400 times, and B armed without a false show. Not
+  yet tried with a ball.
 - **Git:** local commits only.
   - `1c38d94`: first version
   - `f1d114b`: 2026-10-29
@@ -46,7 +57,15 @@ student asks.
   - a 2026-10-30 commit for the Hub C RIGHT candy button and this handoff (see `git log`)
   - `main` is ahead of `origin/main`. Never push.
   - The `IMG_*`, `.mov` and PDF files in the repo root stay out of git (the student's choice).
-- **Not done:** the `project10.html` portfolio page and home-page card.
+- **Project finished (2026-10-30).** Final settings: 19.5-turn pull, any-color
+  trigger. The portfolio page `../project10.html` and its home-page card are
+  done. Images are `../images/project10*.jpg`: a hero cutout from IMG_7729 and a
+  booth crop from IMG_7731 (no faces), plus cutouts from IMG_7733,
+  `dropper.jpg` and `skull.jpg`. The page's code blocks are copies of the
+  `hub_*.py` files, so if the code changes, update the page too.
+- **YouTube video `JhY2_mKiFgQ` was Private** when the page was built. The embed
+  shows "This video is private" until the student sets it to Unlisted or Public
+  in YouTube Studio.
 
 ## Hardware and tool facts (learned the hard way)
 
@@ -91,7 +110,7 @@ student asks.
 ## Student decisions not obvious from the code
 
 - The hub letters were renamed early on: **A = Dropper, B = Skull, C = Slide/candy pusher**.
-- One azure reading counts as a hit. The ball bounces off, so there's no debounce.
+- Any color reading (anything in `NOT_A_BALL` excluded, by default only `color.UNKNOWN`) counts as a hit; azure only until 2026-10-30. The ball bounces off, so there's no debounce.
 - B is the only hub that starts shows. Test triggers ask B for a show:
   - LEFT on C raises C's count
   - LEFT on A sets A's state to 2

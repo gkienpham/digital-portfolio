@@ -1,6 +1,6 @@
 # ===== Project 10 Haunted House: Hub A (Dropper) =====
 # When the skull (Hub B) starts a show, this hub runs the dropper on its own clock:
-#   5 s -> platforms drop -> 5 s -> pull the knife up 29 turns -> 2 s
+#   5 s -> platforms drop -> 5 s -> pull the knife up 19.5 turns -> 2 s
 #   -> platforms close -> unwind (knife rests on the platforms again)
 # Then it tells the skull it is ready for the next show.
 # LEFT button: ask the skull to start a full show (for testing without the ball).
@@ -29,7 +29,7 @@ DROP_SPEED = 800            # degrees per second (fast, for the surprise)
 CLOSE_SPEED = 300           # degrees per second (gentle, under the knife)
 CLOSE_MS = 700              # time to let the platforms close before unwinding
 PULL_SPEED = 400            # degrees per second: + = clockwise = pull up
-PULL_TURNS = 29             # motor turns to pull up (360 degrees each)
+PULL_TURNS = 19.5           # motor turns to pull up (360 degrees each)
 RELEASE_SPEED = 525         # degrees per second to unwind (the large motor's max is 1050)
 WAIT_BEFORE_DROP_MS = 5000  # after the skull sees the ball
 WAIT_BEFORE_PULL_MS = 5000  # after the drop

@@ -1,5 +1,5 @@
 # ===== Project 10 Haunted House: Hub B (Skull) =====
-# Watches the two color sensors in the skull's eyes. One azure reading on
+# Watches the two color sensors in the skull's eyes. One reading of any color on
 # either sensor (the ball only flashes past) starts a show: the count goes up,
 # the slide (Hub C) pushes candy and the dropper (Hub A) runs its timeline.
 # LEFT on Hub C or Hub A starts a show the same way (for testing without the ball).
@@ -18,7 +18,8 @@ LOST_MS = 1500          # nothing heard from a hub for this long = lost
 
 # ----- Settings (tune these while testing) -----
 EYES = {"B": port.B, "D": port.D}   # color sensors, by port letter
-RESET_TIMEOUT_MS = 90000    # re-arm anyway if the dropper never says ready (a show takes about 60 s)
+NOT_A_BALL = [color.UNKNOWN]        # readings that are NOT a hit (add e.g. color.BLACK if an empty eye reads it)
+RESET_TIMEOUT_MS = 90000    # re-arm anyway if the dropper never says ready (a show takes about 45 s)
 
 state = 0               # 0 = armed (waiting for the ball), 1 = show running
 count = 0               # +1 every time a show starts
@@ -91,8 +92,9 @@ while True:
         if latest["A"]["values"] and latest["A"]["values"][0] == 2:
             hit = "test button on Hub A"
         for letter in EYES:
-            if color_sensor.color(EYES[letter]) == color.AZURE:
-                hit = "azure on sensor " + letter
+            seen_color = color_sensor.color(EYES[letter])
+            if seen_color not in NOT_A_BALL:
+                hit = "color " + str(seen_color) + " on sensor " + letter
         if hit:
             state = 1
             count += 1
