@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Project 13: 1D Color Search</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" href="./project.css">
+</head>
+<body>
+
+    <!-- Header and Navigation Section -->
+    <header class="header">
+        <nav class="navbar">
+            <a href="./index.html" class="active">Home</a>
+        </nav>
+    </header>
+
+    <!-- Project Information -->
+    <div class="proj-container">
+
+        <h1 class='proj-header'>Project Portfolio</h1>
+
+        <div class="proj-img-container">
+            <img src="./images/project13.jpg" alt="LEGO SPIKE Prime arm on a wooden table: a long black beam on a motor holds a color sensor, with black, green, red, blue, yellow and magenta bricks standing nearby">
+        </div>
+
+        <h2 class='proj-header'>Project 13: 1D Color Search</h2>
+
+        <div class="proj-desc">
+            <p>The 1D Color Search challenge was to use reinforcement learning on a LEGO SPIKE Prime robot. A color sensor on the end of a swinging arm scans a row of LEGO bricks, and the robot has to learn to find the green goal brick without running into the black boundary bricks at either end. It starts out knowing nothing about the track.</p>
+            <p>My robot has a Large Motor on port B that swings the arm and a Color Sensor on port D at the end of the arm, facing the bricks. My track was BLACK, MAGENTA, YELLOW, BLUE, RED, GREEN, BLACK. Before training, I ran the <code>read_color.py</code> setup checker and swept the arm across the whole track three times. Every brick read as the right color and every gap between bricks read NONE, so I didn&#8217;t have to change any settings.</p>
+            <p>The robot runs <code>rl_color_search.py</code> from the <a href="https://github.com/edanahy/RLwithSPIKE" target="_blank" rel="noopener">RLwithSPIKE</a> repository by Ethan Danahy and the Tufts CEEO. I used it without changes. It uses Q-learning: the state is the color under the sensor, and the action is sweeping LEFT or RIGHT to the next brick. Reaching green earns +10, hitting black earns &minus;10, and every other move costs &minus;1, so shorter paths score better. After every move, the robot updates its Q-table, which holds a score for each move from each brick. I kept the default learning settings: learning rate &alpha; = 0.5, discount &gamma; = 0.9, and exploration &epsilon; = 0.1.</p>
+            <p>I trained it for 12 episodes. For each one, I moved the arm by hand to a starting brick and pressed the hub&#8217;s right button. It hit the black end in episodes 2 and 4 and found green in the other 10. Episodes 3, 8, 9, 11 and 12 took the shortest possible path. After 12 episodes, LEFT had the higher score on every brick, which is correct because green is at the left end of the track. The scores were highest next to green (9.99 on RED) and dropped the farther a brick was from green (2.55 on MAGENTA), because every extra move costs &minus;1 and future rewards are discounted by &gamma;.</p>
+            <p>I also tried the <a href="https://edanahy.github.io/RLwithSPIKE/" target="_blank" rel="noopener">live web dashboard</a>, which shows the arm on the track, the Q-table filling in, a map of the track and the steps per episode.</p>
+        </div>
+
+        <div class="proj-gallery">
+            <img src="./images/project13-top.jpg" alt="Top view of the setup: the hub showing 0 on its light matrix, and the motor and arm pointing at an arc of bricks: black, green, red, blue, yellow, magenta and black">
+        </div>
+
+        <div class="proj-video-container">
+            <iframe src="https://www.youtube.com/embed/YpItar2H_p8" title="1D Color Search arm sweeping along the bricks" allowfullscreen></iframe>
+        </div>
+
+        <div class="proj-code">
+            <h3>Q-learning update (from <code>rl_color_search.py</code>):</h3>
+            <pre><code>
+def learn(self, state, action, reward, next_state, done):
+    """The Q-learning update rule:
+
+        new Q = old Q + alpha * (reward + gamma * best_next - old Q)
+
+    best_next is the best Q-value in the state we landed in: how good
+    things look from here on. If the episode is over there is no future,
+    so best_next is 0. Returns (old Q, best_next, new Q)."""
+    old = self.q[state][action]
+    if done:
+        best_next = 0.0
+    else:
+        best_next = max(self.q[next_state])
+    target = reward + self.gamma * best_next
+    new = old + self.alpha * (target - old)
+    self.q[state][action] = new
+    return old, best_next, new
+</code></pre></div>
+
+    </div>
+    <!-- End Project Information -->
+
+</body>
+</html>
