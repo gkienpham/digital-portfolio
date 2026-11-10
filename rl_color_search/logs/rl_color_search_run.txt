@@ -1,0 +1,462 @@
+
+=================================================
+  1D COLOR SEARCH with Reinforcement Learning
+=================================================
+Goal: GREEN    Boundary (both ends): BLACK
+The robot discovers the other brick colors as it explores.
+The Q-table starts empty: each new color adds a row.
+Rewards: goal +10, boundary -10, any other move -1
+Learning: alpha 0.50, gamma 0.90, epsilon 0.10 (chance of a random move while training)
+
+  RIGHT button = TRAIN one episode (explore + learn)
+  LEFT button  = TEST what it learned (no random moves, no learning)
+  Press either button during a run to stop it.
+
+@HELLO app=search version=2
+@CONFIG app=search goal=GREEN boundary=BLACK ignore=none actions=LEFT,RIGHT alpha=0.50 gamma=0.90 epsilon=0.10 max_steps=15 reward_goal=10 reward_boundary=-10 reward_step=-1
+@QTABLE app=search ep=0 states=none
+>> Turn the arm by hand so the sensor is over a colored brick. Then press RIGHT to TRAIN or LEFT to TEST.
+@CONFIG app=search goal=GREEN boundary=BLACK ignore=none actions=LEFT,RIGHT alpha=0.50 gamma=0.90 epsilon=0.10 max_steps=15 reward_goal=10 reward_boundary=-10 reward_step=-1
+@QTABLE app=search ep=0 states=none
+=== TRAINING episode 1: starting on BLUE ===
+@START app=search mode=train run=1 ep=1 start=BLUE epsilon=0.10
+New color discovered: BLUE -> new row in the Q-table (1 state now)
+@DISCOVER state=BLUE row=0
+@CHOOSE run=1 t=1 state=BLUE action=RIGHT explore=no q=[0.00,0.00]
+New color discovered: YELLOW -> new row in the Q-table (2 states now)
+@DISCOVER state=YELLOW row=1
+  step 1: on BLUE, chose RIGHT (a tie, so picked at random) -> YELLOW, reward -1   Q(BLUE,RIGHT): 0.00 -> -0.50
+@STEP run=1 t=1 state=BLUE action=RIGHT explore=no next=YELLOW reward=-1 old=0.00 best_next=0.00 new=-0.50
+@CHOOSE run=1 t=2 state=YELLOW action=LEFT explore=no q=[0.00,0.00]
+  step 2: on YELLOW, chose LEFT (a tie, so picked at random) -> BLUE, reward -1   Q(YELLOW,LEFT): 0.00 -> -0.50
+@STEP run=1 t=2 state=YELLOW action=LEFT explore=no next=BLUE reward=-1 old=0.00 best_next=0.00 new=-0.50
+@CHOOSE run=1 t=3 state=BLUE action=LEFT explore=no q=[0.00,-0.50]
+New color discovered: RED -> new row in the Q-table (3 states now)
+@DISCOVER state=RED row=2
+  step 3: on BLUE, chose LEFT (best move so far) -> RED, reward -1   Q(BLUE,LEFT): 0.00 -> -0.50
+@STEP run=1 t=3 state=BLUE action=LEFT explore=no next=RED reward=-1 old=0.00 best_next=0.00 new=-0.50
+@CHOOSE run=1 t=4 state=RED action=LEFT explore=no q=[0.00,0.00]
+  step 4: on RED, chose LEFT (a tie, so picked at random) -> GREEN, reward +10   Q(RED,LEFT): 0.00 -> 5.00
+@STEP run=1 t=4 state=RED action=LEFT explore=no next=GREEN reward=10 old=0.00 best_next=0.00 new=5.00
+Found the GOAL in 4 step(s)! Total reward: +7
+@END app=search mode=train run=1 ep=1 steps=4 total=7 result=goal
+@QTABLE app=search ep=1 states=BLUE,YELLOW,RED
+@QROW app=search state=BLUE q=[-0.50,-0.50]
+@QROW app=search state=YELLOW q=[-0.50,0.00]
+@QROW app=search state=RED q=[5.00,0.00]
+Q-table after 1 training episode(s).  Higher = better move.
+  color         LEFT   RIGHT   best move
+  BLUE         -0.50   -0.50   (tie - no favorite yet)
+  YELLOW       -0.50    0.00   RIGHT ->
+  RED           5.00    0.00   <- LEFT
+
+>> Move the arm to a new starting brick. Then press RIGHT to TRAIN or LEFT to TEST.
+@CONFIG app=search goal=GREEN boundary=BLACK ignore=none actions=LEFT,RIGHT alpha=0.50 gamma=0.90 epsilon=0.10 max_steps=15 reward_goal=10 reward_boundary=-10 reward_step=-1
+@QTABLE app=search ep=1 states=BLUE,YELLOW,RED
+@QROW app=search state=BLUE q=[-0.50,-0.50]
+@QROW app=search state=YELLOW q=[-0.50,0.00]
+@QROW app=search state=RED q=[5.00,0.00]
+=== TRAINING episode 2: starting on MAGENTA ===
+@START app=search mode=train run=2 ep=2 start=MAGENTA epsilon=0.10
+New color discovered: MAGENTA -> new row in the Q-table (4 states now)
+@DISCOVER state=MAGENTA row=3
+@CHOOSE run=2 t=1 state=MAGENTA action=RIGHT explore=no q=[0.00,0.00]
+  step 1: on MAGENTA, chose RIGHT (a tie, so picked at random) -> BLACK, reward -10   Q(MAGENTA,RIGHT): 0.00 -> -5.00
+@STEP run=2 t=1 state=MAGENTA action=RIGHT explore=no next=BLACK reward=-10 old=0.00 best_next=0.00 new=-5.00
+Hit the boundary after 1 step(s). Total reward: -10
+@END app=search mode=train run=2 ep=2 steps=1 total=-10 result=boundary
+@QTABLE app=search ep=2 states=BLUE,YELLOW,RED,MAGENTA
+@QROW app=search state=BLUE q=[-0.50,-0.50]
+@QROW app=search state=YELLOW q=[-0.50,0.00]
+@QROW app=search state=RED q=[5.00,0.00]
+@QROW app=search state=MAGENTA q=[0.00,-5.00]
+Q-table after 2 training episode(s).  Higher = better move.
+  color         LEFT   RIGHT   best move
+  BLUE         -0.50   -0.50   (tie - no favorite yet)
+  YELLOW       -0.50    0.00   RIGHT ->
+  RED           5.00    0.00   <- LEFT
+  MAGENTA       0.00   -5.00   <- LEFT
+
+>> Move the arm to a new starting brick. Then press RIGHT to TRAIN or LEFT to TEST.
+Can't start yet.
+>> The sensor is on a boundary brick. Move the arm to a colored brick between the ends, then press a button.
+Can't start yet.
+>> The sensor is on a boundary brick. Move the arm to a colored brick between the ends, then press a button.
+Can't start yet.
+>> I can't get a steady color. Move the sensor over the middle of a brick, then press a button. (read_color.py can help you check your setup.)
+@CONFIG app=search goal=GREEN boundary=BLACK ignore=none actions=LEFT,RIGHT alpha=0.50 gamma=0.90 epsilon=0.10 max_steps=15 reward_goal=10 reward_boundary=-10 reward_step=-1
+@QTABLE app=search ep=2 states=BLUE,YELLOW,RED,MAGENTA
+@QROW app=search state=BLUE q=[-0.50,-0.50]
+@QROW app=search state=YELLOW q=[-0.50,0.00]
+@QROW app=search state=RED q=[5.00,0.00]
+@QROW app=search state=MAGENTA q=[0.00,-5.00]
+=== TRAINING episode 3: starting on RED ===
+@START app=search mode=train run=3 ep=3 start=RED epsilon=0.10
+@CHOOSE run=3 t=1 state=RED action=LEFT explore=no q=[5.00,0.00]
+  step 1: on RED, chose LEFT (best move so far) -> GREEN, reward +10   Q(RED,LEFT): 5.00 -> 7.50
+@STEP run=3 t=1 state=RED action=LEFT explore=no next=GREEN reward=10 old=5.00 best_next=0.00 new=7.50
+Found the GOAL in 1 step(s)! Total reward: +10
+@END app=search mode=train run=3 ep=3 steps=1 total=10 result=goal
+@QTABLE app=search ep=3 states=BLUE,YELLOW,RED,MAGENTA
+@QROW app=search state=BLUE q=[-0.50,-0.50]
+@QROW app=search state=YELLOW q=[-0.50,0.00]
+@QROW app=search state=RED q=[7.50,0.00]
+@QROW app=search state=MAGENTA q=[0.00,-5.00]
+Q-table after 3 training episode(s).  Higher = better move.
+  color         LEFT   RIGHT   best move
+  BLUE         -0.50   -0.50   (tie - no favorite yet)
+  YELLOW       -0.50    0.00   RIGHT ->
+  RED           7.50    0.00   <- LEFT
+  MAGENTA       0.00   -5.00   <- LEFT
+
+>> Move the arm to a new starting brick. Then press RIGHT to TRAIN or LEFT to TEST.
+@CONFIG app=search goal=GREEN boundary=BLACK ignore=none actions=LEFT,RIGHT alpha=0.50 gamma=0.90 epsilon=0.10 max_steps=15 reward_goal=10 reward_boundary=-10 reward_step=-1
+@QTABLE app=search ep=3 states=BLUE,YELLOW,RED,MAGENTA
+@QROW app=search state=BLUE q=[-0.50,-0.50]
+@QROW app=search state=YELLOW q=[-0.50,0.00]
+@QROW app=search state=RED q=[7.50,0.00]
+@QROW app=search state=MAGENTA q=[0.00,-5.00]
+=== TRAINING episode 4: starting on YELLOW ===
+@START app=search mode=train run=4 ep=4 start=YELLOW epsilon=0.10
+@CHOOSE run=4 t=1 state=YELLOW action=RIGHT explore=no q=[-0.50,0.00]
+  step 1: on YELLOW, chose RIGHT (best move so far) -> MAGENTA, reward -1   Q(YELLOW,RIGHT): 0.00 -> -0.50
+@STEP run=4 t=1 state=YELLOW action=RIGHT explore=no next=MAGENTA reward=-1 old=0.00 best_next=0.00 new=-0.50
+@CHOOSE run=4 t=2 state=MAGENTA action=RIGHT explore=yes q=[0.00,-5.00]
+  step 2: on MAGENTA, chose RIGHT (random - exploring!) -> BLACK, reward -10   Q(MAGENTA,RIGHT): -5.00 -> -7.50
+@STEP run=4 t=2 state=MAGENTA action=RIGHT explore=yes next=BLACK reward=-10 old=-5.00 best_next=0.00 new=-7.50
+Hit the boundary after 2 step(s). Total reward: -11
+@END app=search mode=train run=4 ep=4 steps=2 total=-11 result=boundary
+@QTABLE app=search ep=4 states=BLUE,YELLOW,RED,MAGENTA
+@QROW app=search state=BLUE q=[-0.50,-0.50]
+@QROW app=search state=YELLOW q=[-0.50,-0.50]
+@QROW app=search state=RED q=[7.50,0.00]
+@QROW app=search state=MAGENTA q=[0.00,-7.50]
+Q-table after 4 training episode(s).  Higher = better move.
+  color         LEFT   RIGHT   best move
+  BLUE         -0.50   -0.50   (tie - no favorite yet)
+  YELLOW       -0.50   -0.50   (tie - no favorite yet)
+  RED           7.50    0.00   <- LEFT
+  MAGENTA       0.00   -7.50   <- LEFT
+
+>> Move the arm to a new starting brick. Then press RIGHT to TRAIN or LEFT to TEST.
+Can't start yet.
+>> The sensor is on a boundary brick. Move the arm to a colored brick between the ends, then press a button.
+@CONFIG app=search goal=GREEN boundary=BLACK ignore=none actions=LEFT,RIGHT alpha=0.50 gamma=0.90 epsilon=0.10 max_steps=15 reward_goal=10 reward_boundary=-10 reward_step=-1
+@QTABLE app=search ep=4 states=BLUE,YELLOW,RED,MAGENTA
+@QROW app=search state=BLUE q=[-0.50,-0.50]
+@QROW app=search state=YELLOW q=[-0.50,-0.50]
+@QROW app=search state=RED q=[7.50,0.00]
+@QROW app=search state=MAGENTA q=[0.00,-7.50]
+=== TRAINING episode 5: starting on YELLOW ===
+@START app=search mode=train run=5 ep=5 start=YELLOW epsilon=0.10
+@CHOOSE run=5 t=1 state=YELLOW action=RIGHT explore=no q=[-0.50,-0.50]
+  step 1: on YELLOW, chose RIGHT (a tie, so picked at random) -> MAGENTA, reward -1   Q(YELLOW,RIGHT): -0.50 -> -0.75
+@STEP run=5 t=1 state=YELLOW action=RIGHT explore=no next=MAGENTA reward=-1 old=-0.50 best_next=0.00 new=-0.75
+@CHOOSE run=5 t=2 state=MAGENTA action=LEFT explore=no q=[0.00,-7.50]
+  step 2: on MAGENTA, chose LEFT (best move so far) -> YELLOW, reward -1   Q(MAGENTA,LEFT): 0.00 -> -0.73
+@STEP run=5 t=2 state=MAGENTA action=LEFT explore=no next=YELLOW reward=-1 old=0.00 best_next=-0.50 new=-0.73
+@CHOOSE run=5 t=3 state=YELLOW action=LEFT explore=no q=[-0.50,-0.75]
+  step 3: on YELLOW, chose LEFT (best move so far) -> BLUE, reward -1   Q(YELLOW,LEFT): -0.50 -> -0.98
+@STEP run=5 t=3 state=YELLOW action=LEFT explore=no next=BLUE reward=-1 old=-0.50 best_next=-0.50 new=-0.98
+@CHOOSE run=5 t=4 state=BLUE action=RIGHT explore=no q=[-0.50,-0.50]
+  step 4: on BLUE, chose RIGHT (a tie, so picked at random) -> YELLOW, reward -1   Q(BLUE,RIGHT): -0.50 -> -1.09
+@STEP run=5 t=4 state=BLUE action=RIGHT explore=no next=YELLOW reward=-1 old=-0.50 best_next=-0.75 new=-1.09
+@CHOOSE run=5 t=5 state=YELLOW action=LEFT explore=yes q=[-0.98,-0.75]
+  step 5: on YELLOW, chose LEFT (random - exploring!) -> BLUE, reward -1   Q(YELLOW,LEFT): -0.98 -> -1.21
+@STEP run=5 t=5 state=YELLOW action=LEFT explore=yes next=BLUE reward=-1 old=-0.98 best_next=-0.50 new=-1.21
+@CHOOSE run=5 t=6 state=BLUE action=LEFT explore=no q=[-0.50,-1.09]
+  step 6: on BLUE, chose LEFT (best move so far) -> RED, reward -1   Q(BLUE,LEFT): -0.50 -> 2.63
+@STEP run=5 t=6 state=BLUE action=LEFT explore=no next=RED reward=-1 old=-0.50 best_next=7.50 new=2.63
+@CHOOSE run=5 t=7 state=RED action=LEFT explore=no q=[7.50,0.00]
+  step 7: on RED, chose LEFT (best move so far) -> GREEN, reward +10   Q(RED,LEFT): 7.50 -> 8.75
+@STEP run=5 t=7 state=RED action=LEFT explore=no next=GREEN reward=10 old=7.50 best_next=0.00 new=8.75
+Found the GOAL in 7 step(s)! Total reward: +4
+@END app=search mode=train run=5 ep=5 steps=7 total=4 result=goal
+@QTABLE app=search ep=5 states=BLUE,YELLOW,RED,MAGENTA
+@QROW app=search state=BLUE q=[2.63,-1.09]
+@QROW app=search state=YELLOW q=[-1.21,-0.75]
+@QROW app=search state=RED q=[8.75,0.00]
+@QROW app=search state=MAGENTA q=[-0.73,-7.50]
+Q-table after 5 training episode(s).  Higher = better move.
+  color         LEFT   RIGHT   best move
+  BLUE          2.63   -1.09   <- LEFT
+  YELLOW       -1.21   -0.75   RIGHT ->
+  RED           8.75    0.00   <- LEFT
+  MAGENTA      -0.73   -7.50   <- LEFT
+
+>> Move the arm to a new starting brick. Then press RIGHT to TRAIN or LEFT to TEST.
+@CONFIG app=search goal=GREEN boundary=BLACK ignore=none actions=LEFT,RIGHT alpha=0.50 gamma=0.90 epsilon=0.10 max_steps=15 reward_goal=10 reward_boundary=-10 reward_step=-1
+@QTABLE app=search ep=5 states=BLUE,YELLOW,RED,MAGENTA
+@QROW app=search state=BLUE q=[2.63,-1.09]
+@QROW app=search state=YELLOW q=[-1.21,-0.75]
+@QROW app=search state=RED q=[8.75,0.00]
+@QROW app=search state=MAGENTA q=[-0.73,-7.50]
+=== TRAINING episode 6: starting on MAGENTA ===
+@START app=search mode=train run=6 ep=6 start=MAGENTA epsilon=0.10
+@CHOOSE run=6 t=1 state=MAGENTA action=LEFT explore=no q=[-0.73,-7.50]
+  step 1: on MAGENTA, chose LEFT (best move so far) -> YELLOW, reward -1   Q(MAGENTA,LEFT): -0.73 -> -1.20
+@STEP run=6 t=1 state=MAGENTA action=LEFT explore=no next=YELLOW reward=-1 old=-0.73 best_next=-0.75 new=-1.20
+@CHOOSE run=6 t=2 state=YELLOW action=RIGHT explore=no q=[-1.21,-0.75]
+  step 2: on YELLOW, chose RIGHT (best move so far) -> MAGENTA, reward -1   Q(YELLOW,RIGHT): -0.75 -> -1.41
+@STEP run=6 t=2 state=YELLOW action=RIGHT explore=no next=MAGENTA reward=-1 old=-0.75 best_next=-1.20 new=-1.41
+@CHOOSE run=6 t=3 state=MAGENTA action=LEFT explore=no q=[-1.20,-7.50]
+  step 3: on MAGENTA, chose LEFT (best move so far) -> YELLOW, reward -1   Q(MAGENTA,LEFT): -1.20 -> -1.65
+@STEP run=6 t=3 state=MAGENTA action=LEFT explore=no next=YELLOW reward=-1 old=-1.20 best_next=-1.21 new=-1.65
+@CHOOSE run=6 t=4 state=YELLOW action=LEFT explore=no q=[-1.21,-1.41]
+  step 4: on YELLOW, chose LEFT (best move so far) -> BLUE, reward -1   Q(YELLOW,LEFT): -1.21 -> 0.07
+@STEP run=6 t=4 state=YELLOW action=LEFT explore=no next=BLUE reward=-1 old=-1.21 best_next=2.63 new=0.07
+@CHOOSE run=6 t=5 state=BLUE action=LEFT explore=no q=[2.63,-1.09]
+  step 5: on BLUE, chose LEFT (best move so far) -> RED, reward -1   Q(BLUE,LEFT): 2.63 -> 4.75
+@STEP run=6 t=5 state=BLUE action=LEFT explore=no next=RED reward=-1 old=2.63 best_next=8.75 new=4.75
+@CHOOSE run=6 t=6 state=RED action=LEFT explore=no q=[8.75,0.00]
+  step 6: on RED, chose LEFT (best move so far) -> GREEN, reward +10   Q(RED,LEFT): 8.75 -> 9.38
+@STEP run=6 t=6 state=RED action=LEFT explore=no next=GREEN reward=10 old=8.75 best_next=0.00 new=9.38
+Found the GOAL in 6 step(s)! Total reward: +5
+@END app=search mode=train run=6 ep=6 steps=6 total=5 result=goal
+@QTABLE app=search ep=6 states=BLUE,YELLOW,RED,MAGENTA
+@QROW app=search state=BLUE q=[4.75,-1.09]
+@QROW app=search state=YELLOW q=[0.07,-1.41]
+@QROW app=search state=RED q=[9.38,0.00]
+@QROW app=search state=MAGENTA q=[-1.65,-7.50]
+Q-table after 6 training episode(s).  Higher = better move.
+  color         LEFT   RIGHT   best move
+  BLUE          4.75   -1.09   <- LEFT
+  YELLOW        0.07   -1.41   <- LEFT
+  RED           9.38    0.00   <- LEFT
+  MAGENTA      -1.65   -7.50   <- LEFT
+
+>> Move the arm to a new starting brick. Then press RIGHT to TRAIN or LEFT to TEST.
+@CONFIG app=search goal=GREEN boundary=BLACK ignore=none actions=LEFT,RIGHT alpha=0.50 gamma=0.90 epsilon=0.10 max_steps=15 reward_goal=10 reward_boundary=-10 reward_step=-1
+@QTABLE app=search ep=6 states=BLUE,YELLOW,RED,MAGENTA
+@QROW app=search state=BLUE q=[4.75,-1.09]
+@QROW app=search state=YELLOW q=[0.07,-1.41]
+@QROW app=search state=RED q=[9.38,0.00]
+@QROW app=search state=MAGENTA q=[-1.65,-7.50]
+=== TRAINING episode 7: starting on BLUE ===
+@START app=search mode=train run=7 ep=7 start=BLUE epsilon=0.10
+@CHOOSE run=7 t=1 state=BLUE action=LEFT explore=no q=[4.75,-1.09]
+  step 1: on BLUE, chose LEFT (best move so far) -> RED, reward -1   Q(BLUE,LEFT): 4.75 -> 6.09
+@STEP run=7 t=1 state=BLUE action=LEFT explore=no next=RED reward=-1 old=4.75 best_next=9.38 new=6.09
+@CHOOSE run=7 t=2 state=RED action=RIGHT explore=yes q=[9.38,0.00]
+  step 2: on RED, chose RIGHT (random - exploring!) -> BLUE, reward -1   Q(RED,RIGHT): 0.00 -> 2.24
+@STEP run=7 t=2 state=RED action=RIGHT explore=yes next=BLUE reward=-1 old=0.00 best_next=6.09 new=2.24
+@CHOOSE run=7 t=3 state=BLUE action=LEFT explore=no q=[6.09,-1.09]
+  step 3: on BLUE, chose LEFT (best move so far) -> RED, reward -1   Q(BLUE,LEFT): 6.09 -> 6.77
+@STEP run=7 t=3 state=BLUE action=LEFT explore=no next=RED reward=-1 old=6.09 best_next=9.38 new=6.77
+@CHOOSE run=7 t=4 state=RED action=LEFT explore=no q=[9.38,2.24]
+  step 4: on RED, chose LEFT (best move so far) -> GREEN, reward +10   Q(RED,LEFT): 9.38 -> 9.69
+@STEP run=7 t=4 state=RED action=LEFT explore=no next=GREEN reward=10 old=9.38 best_next=0.00 new=9.69
+Found the GOAL in 4 step(s)! Total reward: +7
+@END app=search mode=train run=7 ep=7 steps=4 total=7 result=goal
+@QTABLE app=search ep=7 states=BLUE,YELLOW,RED,MAGENTA
+@QROW app=search state=BLUE q=[6.77,-1.09]
+@QROW app=search state=YELLOW q=[0.07,-1.41]
+@QROW app=search state=RED q=[9.69,2.24]
+@QROW app=search state=MAGENTA q=[-1.65,-7.50]
+Q-table after 7 training episode(s).  Higher = better move.
+  color         LEFT   RIGHT   best move
+  BLUE          6.77   -1.09   <- LEFT
+  YELLOW        0.07   -1.41   <- LEFT
+  RED           9.69    2.24   <- LEFT
+  MAGENTA      -1.65   -7.50   <- LEFT
+
+>> Move the arm to a new starting brick. Then press RIGHT to TRAIN or LEFT to TEST.
+@CONFIG app=search goal=GREEN boundary=BLACK ignore=none actions=LEFT,RIGHT alpha=0.50 gamma=0.90 epsilon=0.10 max_steps=15 reward_goal=10 reward_boundary=-10 reward_step=-1
+@QTABLE app=search ep=7 states=BLUE,YELLOW,RED,MAGENTA
+@QROW app=search state=BLUE q=[6.77,-1.09]
+@QROW app=search state=YELLOW q=[0.07,-1.41]
+@QROW app=search state=RED q=[9.69,2.24]
+@QROW app=search state=MAGENTA q=[-1.65,-7.50]
+=== TRAINING episode 8: starting on MAGENTA ===
+@START app=search mode=train run=8 ep=8 start=MAGENTA epsilon=0.10
+@CHOOSE run=8 t=1 state=MAGENTA action=LEFT explore=no q=[-1.65,-7.50]
+  step 1: on MAGENTA, chose LEFT (best move so far) -> YELLOW, reward -1   Q(MAGENTA,LEFT): -1.65 -> -1.29
+@STEP run=8 t=1 state=MAGENTA action=LEFT explore=no next=YELLOW reward=-1 old=-1.65 best_next=0.07 new=-1.29
+@CHOOSE run=8 t=2 state=YELLOW action=LEFT explore=no q=[0.07,-1.41]
+  step 2: on YELLOW, chose LEFT (best move so far) -> BLUE, reward -1   Q(YELLOW,LEFT): 0.07 -> 2.58
+@STEP run=8 t=2 state=YELLOW action=LEFT explore=no next=BLUE reward=-1 old=0.07 best_next=6.77 new=2.58
+@CHOOSE run=8 t=3 state=BLUE action=LEFT explore=no q=[6.77,-1.09]
+  step 3: on BLUE, chose LEFT (best move so far) -> RED, reward -1   Q(BLUE,LEFT): 6.77 -> 7.24
+@STEP run=8 t=3 state=BLUE action=LEFT explore=no next=RED reward=-1 old=6.77 best_next=9.69 new=7.24
+@CHOOSE run=8 t=4 state=RED action=LEFT explore=no q=[9.69,2.24]
+  step 4: on RED, chose LEFT (best move so far) -> GREEN, reward +10   Q(RED,LEFT): 9.69 -> 9.84
+@STEP run=8 t=4 state=RED action=LEFT explore=no next=GREEN reward=10 old=9.69 best_next=0.00 new=9.84
+Found the GOAL in 4 step(s)! Total reward: +7
+@END app=search mode=train run=8 ep=8 steps=4 total=7 result=goal
+@QTABLE app=search ep=8 states=BLUE,YELLOW,RED,MAGENTA
+@QROW app=search state=BLUE q=[7.24,-1.09]
+@QROW app=search state=YELLOW q=[2.58,-1.41]
+@QROW app=search state=RED q=[9.84,2.24]
+@QROW app=search state=MAGENTA q=[-1.29,-7.50]
+Q-table after 8 training episode(s).  Higher = better move.
+  color         LEFT   RIGHT   best move
+  BLUE          7.24   -1.09   <- LEFT
+  YELLOW        2.58   -1.41   <- LEFT
+  RED           9.84    2.24   <- LEFT
+  MAGENTA      -1.29   -7.50   <- LEFT
+
+>> Move the arm to a new starting brick. Then press RIGHT to TRAIN or LEFT to TEST.
+Can't start yet.
+>> The sensor is on a boundary brick. Move the arm to a colored brick between the ends, then press a button.
+Can't start yet.
+>> The sensor is on a boundary brick. Move the arm to a colored brick between the ends, then press a button.
+Can't start yet.
+>> The sensor is on a boundary brick. Move the arm to a colored brick between the ends, then press a button.
+Can't start yet.
+>> I can't get a steady color. Move the sensor over the middle of a brick, then press a button. (read_color.py can help you check your setup.)
+Can't start yet.
+>> I can't get a steady color. Move the sensor over the middle of a brick, then press a button. (read_color.py can help you check your setup.)
+@CONFIG app=search goal=GREEN boundary=BLACK ignore=none actions=LEFT,RIGHT alpha=0.50 gamma=0.90 epsilon=0.10 max_steps=15 reward_goal=10 reward_boundary=-10 reward_step=-1
+@QTABLE app=search ep=8 states=BLUE,YELLOW,RED,MAGENTA
+@QROW app=search state=BLUE q=[7.24,-1.09]
+@QROW app=search state=YELLOW q=[2.58,-1.41]
+@QROW app=search state=RED q=[9.84,2.24]
+@QROW app=search state=MAGENTA q=[-1.29,-7.50]
+=== TRAINING episode 9: starting on YELLOW ===
+@START app=search mode=train run=9 ep=9 start=YELLOW epsilon=0.10
+@CHOOSE run=9 t=1 state=YELLOW action=LEFT explore=no q=[2.58,-1.41]
+  step 1: on YELLOW, chose LEFT (best move so far) -> BLUE, reward -1   Q(YELLOW,LEFT): 2.58 -> 4.05
+@STEP run=9 t=1 state=YELLOW action=LEFT explore=no next=BLUE reward=-1 old=2.58 best_next=7.24 new=4.05
+@CHOOSE run=9 t=2 state=BLUE action=LEFT explore=no q=[7.24,-1.09]
+  step 2: on BLUE, chose LEFT (best move so far) -> RED, reward -1   Q(BLUE,LEFT): 7.24 -> 7.55
+@STEP run=9 t=2 state=BLUE action=LEFT explore=no next=RED reward=-1 old=7.24 best_next=9.84 new=7.55
+@CHOOSE run=9 t=3 state=RED action=LEFT explore=no q=[9.84,2.24]
+  step 3: on RED, chose LEFT (best move so far) -> GREEN, reward +10   Q(RED,LEFT): 9.84 -> 9.92
+@STEP run=9 t=3 state=RED action=LEFT explore=no next=GREEN reward=10 old=9.84 best_next=0.00 new=9.92
+Found the GOAL in 3 step(s)! Total reward: +8
+@END app=search mode=train run=9 ep=9 steps=3 total=8 result=goal
+@QTABLE app=search ep=9 states=BLUE,YELLOW,RED,MAGENTA
+@QROW app=search state=BLUE q=[7.55,-1.09]
+@QROW app=search state=YELLOW q=[4.05,-1.41]
+@QROW app=search state=RED q=[9.92,2.24]
+@QROW app=search state=MAGENTA q=[-1.29,-7.50]
+Q-table after 9 training episode(s).  Higher = better move.
+  color         LEFT   RIGHT   best move
+  BLUE          7.55   -1.09   <- LEFT
+  YELLOW        4.05   -1.41   <- LEFT
+  RED           9.92    2.24   <- LEFT
+  MAGENTA      -1.29   -7.50   <- LEFT
+
+>> Move the arm to a new starting brick. Then press RIGHT to TRAIN or LEFT to TEST.
+@CONFIG app=search goal=GREEN boundary=BLACK ignore=none actions=LEFT,RIGHT alpha=0.50 gamma=0.90 epsilon=0.10 max_steps=15 reward_goal=10 reward_boundary=-10 reward_step=-1
+@QTABLE app=search ep=9 states=BLUE,YELLOW,RED,MAGENTA
+@QROW app=search state=BLUE q=[7.55,-1.09]
+@QROW app=search state=YELLOW q=[4.05,-1.41]
+@QROW app=search state=RED q=[9.92,2.24]
+@QROW app=search state=MAGENTA q=[-1.29,-7.50]
+=== TRAINING episode 10: starting on MAGENTA ===
+@START app=search mode=train run=10 ep=10 start=MAGENTA epsilon=0.10
+@CHOOSE run=10 t=1 state=MAGENTA action=LEFT explore=no q=[-1.29,-7.50]
+  step 1: on MAGENTA, chose LEFT (best move so far) -> YELLOW, reward -1   Q(MAGENTA,LEFT): -1.29 -> 0.68
+@STEP run=10 t=1 state=MAGENTA action=LEFT explore=no next=YELLOW reward=-1 old=-1.29 best_next=4.05 new=0.68
+@CHOOSE run=10 t=2 state=YELLOW action=RIGHT explore=yes q=[4.05,-1.41]
+  step 2: on YELLOW, chose RIGHT (random - exploring!) -> MAGENTA, reward -1   Q(YELLOW,RIGHT): -1.41 -> -0.90
+@STEP run=10 t=2 state=YELLOW action=RIGHT explore=yes next=MAGENTA reward=-1 old=-1.41 best_next=0.68 new=-0.90
+@CHOOSE run=10 t=3 state=MAGENTA action=LEFT explore=no q=[0.68,-7.50]
+  step 3: on MAGENTA, chose LEFT (best move so far) -> YELLOW, reward -1   Q(MAGENTA,LEFT): 0.68 -> 1.66
+@STEP run=10 t=3 state=MAGENTA action=LEFT explore=no next=YELLOW reward=-1 old=0.68 best_next=4.05 new=1.66
+@CHOOSE run=10 t=4 state=YELLOW action=LEFT explore=yes q=[4.05,-0.90]
+  step 4: on YELLOW, chose LEFT (random - exploring!) -> BLUE, reward -1   Q(YELLOW,LEFT): 4.05 -> 4.92
+@STEP run=10 t=4 state=YELLOW action=LEFT explore=yes next=BLUE reward=-1 old=4.05 best_next=7.55 new=4.92
+@CHOOSE run=10 t=5 state=BLUE action=LEFT explore=no q=[7.55,-1.09]
+  step 5: on BLUE, chose LEFT (best move so far) -> RED, reward -1   Q(BLUE,LEFT): 7.55 -> 7.74
+@STEP run=10 t=5 state=BLUE action=LEFT explore=no next=RED reward=-1 old=7.55 best_next=9.92 new=7.74
+@CHOOSE run=10 t=6 state=RED action=LEFT explore=no q=[9.92,2.24]
+  step 6: on RED, chose LEFT (best move so far) -> GREEN, reward +10   Q(RED,LEFT): 9.92 -> 9.96
+@STEP run=10 t=6 state=RED action=LEFT explore=no next=GREEN reward=10 old=9.92 best_next=0.00 new=9.96
+Found the GOAL in 6 step(s)! Total reward: +5
+@END app=search mode=train run=10 ep=10 steps=6 total=5 result=goal
+@QTABLE app=search ep=10 states=BLUE,YELLOW,RED,MAGENTA
+@QROW app=search state=BLUE q=[7.74,-1.09]
+@QROW app=search state=YELLOW q=[4.92,-0.90]
+@QROW app=search state=RED q=[9.96,2.24]
+@QROW app=search state=MAGENTA q=[1.66,-7.50]
+Q-table after 10 training episode(s).  Higher = better move.
+  color         LEFT   RIGHT   best move
+  BLUE          7.74   -1.09   <- LEFT
+  YELLOW        4.92   -0.90   <- LEFT
+  RED           9.96    2.24   <- LEFT
+  MAGENTA       1.66   -7.50   <- LEFT
+
+>> Move the arm to a new starting brick. Then press RIGHT to TRAIN or LEFT to TEST.
+Can't start yet.
+>> I can't get a steady color. Move the sensor over the middle of a brick, then press a button. (read_color.py can help you check your setup.)
+Can't start yet.
+>> I can't get a steady color. Move the sensor over the middle of a brick, then press a button. (read_color.py can help you check your setup.)
+Can't start yet.
+>> I can't get a steady color. Move the sensor over the middle of a brick, then press a button. (read_color.py can help you check your setup.)
+Can't start yet.
+>> I can't get a steady color. Move the sensor over the middle of a brick, then press a button. (read_color.py can help you check your setup.)
+@CONFIG app=search goal=GREEN boundary=BLACK ignore=none actions=LEFT,RIGHT alpha=0.50 gamma=0.90 epsilon=0.10 max_steps=15 reward_goal=10 reward_boundary=-10 reward_step=-1
+@QTABLE app=search ep=10 states=BLUE,YELLOW,RED,MAGENTA
+@QROW app=search state=BLUE q=[7.74,-1.09]
+@QROW app=search state=YELLOW q=[4.92,-0.90]
+@QROW app=search state=RED q=[9.96,2.24]
+@QROW app=search state=MAGENTA q=[1.66,-7.50]
+=== TRAINING episode 11: starting on BLUE ===
+@START app=search mode=train run=11 ep=11 start=BLUE epsilon=0.10
+@CHOOSE run=11 t=1 state=BLUE action=LEFT explore=no q=[7.74,-1.09]
+  step 1: on BLUE, chose LEFT (best move so far) -> RED, reward -1   Q(BLUE,LEFT): 7.74 -> 7.85
+@STEP run=11 t=1 state=BLUE action=LEFT explore=no next=RED reward=-1 old=7.74 best_next=9.96 new=7.85
+@CHOOSE run=11 t=2 state=RED action=LEFT explore=no q=[9.96,2.24]
+  step 2: on RED, chose LEFT (best move so far) -> GREEN, reward +10   Q(RED,LEFT): 9.96 -> 9.98
+@STEP run=11 t=2 state=RED action=LEFT explore=no next=GREEN reward=10 old=9.96 best_next=0.00 new=9.98
+Found the GOAL in 2 step(s)! Total reward: +9
+@END app=search mode=train run=11 ep=11 steps=2 total=9 result=goal
+@QTABLE app=search ep=11 states=BLUE,YELLOW,RED,MAGENTA
+@QROW app=search state=BLUE q=[7.85,-1.09]
+@QROW app=search state=YELLOW q=[4.92,-0.90]
+@QROW app=search state=RED q=[9.98,2.24]
+@QROW app=search state=MAGENTA q=[1.66,-7.50]
+Q-table after 11 training episode(s).  Higher = better move.
+  color         LEFT   RIGHT   best move
+  BLUE          7.85   -1.09   <- LEFT
+  YELLOW        4.92   -0.90   <- LEFT
+  RED           9.98    2.24   <- LEFT
+  MAGENTA       1.66   -7.50   <- LEFT
+
+>> Move the arm to a new starting brick. Then press RIGHT to TRAIN or LEFT to TEST.
+Can't start yet.
+>> I can't get a steady color. Move the sensor over the middle of a brick, then press a button. (read_color.py can help you check your setup.)
+Can't start yet.
+>> I can't get a steady color. Move the sensor over the middle of a brick, then press a button. (read_color.py can help you check your setup.)
+Can't start yet.
+>> I can't get a steady color. Move the sensor over the middle of a brick, then press a button. (read_color.py can help you check your setup.)
+Can't start yet.
+>> I can't get a steady color. Move the sensor over the middle of a brick, then press a button. (read_color.py can help you check your setup.)
+@CONFIG app=search goal=GREEN boundary=BLACK ignore=none actions=LEFT,RIGHT alpha=0.50 gamma=0.90 epsilon=0.10 max_steps=15 reward_goal=10 reward_boundary=-10 reward_step=-1
+@QTABLE app=search ep=11 states=BLUE,YELLOW,RED,MAGENTA
+@QROW app=search state=BLUE q=[7.85,-1.09]
+@QROW app=search state=YELLOW q=[4.92,-0.90]
+@QROW app=search state=RED q=[9.98,2.24]
+@QROW app=search state=MAGENTA q=[1.66,-7.50]
+=== TRAINING episode 12: starting on MAGENTA ===
+@START app=search mode=train run=12 ep=12 start=MAGENTA epsilon=0.10
+@CHOOSE run=12 t=1 state=MAGENTA action=LEFT explore=no q=[1.66,-7.50]
+  step 1: on MAGENTA, chose LEFT (best move so far) -> YELLOW, reward -1   Q(MAGENTA,LEFT): 1.66 -> 2.55
+@STEP run=12 t=1 state=MAGENTA action=LEFT explore=no next=YELLOW reward=-1 old=1.66 best_next=4.92 new=2.55
+@CHOOSE run=12 t=2 state=YELLOW action=LEFT explore=no q=[4.92,-0.90]
+  step 2: on YELLOW, chose LEFT (best move so far) -> BLUE, reward -1   Q(YELLOW,LEFT): 4.92 -> 5.50
+@STEP run=12 t=2 state=YELLOW action=LEFT explore=no next=BLUE reward=-1 old=4.92 best_next=7.85 new=5.50
+@CHOOSE run=12 t=3 state=BLUE action=LEFT explore=no q=[7.85,-1.09]
+  step 3: on BLUE, chose LEFT (best move so far) -> RED, reward -1   Q(BLUE,LEFT): 7.85 -> 7.92
+@STEP run=12 t=3 state=BLUE action=LEFT explore=no next=RED reward=-1 old=7.85 best_next=9.98 new=7.92
+@CHOOSE run=12 t=4 state=RED action=LEFT explore=no q=[9.98,2.24]
+  step 4: on RED, chose LEFT (best move so far) -> GREEN, reward +10   Q(RED,LEFT): 9.98 -> 9.99
+@STEP run=12 t=4 state=RED action=LEFT explore=no next=GREEN reward=10 old=9.98 best_next=0.00 new=9.99
+Found the GOAL in 4 step(s)! Total reward: +7
+@END app=search mode=train run=12 ep=12 steps=4 total=7 result=goal
+@QTABLE app=search ep=12 states=BLUE,YELLOW,RED,MAGENTA
+@QROW app=search state=BLUE q=[7.92,-1.09]
+@QROW app=search state=YELLOW q=[5.50,-0.90]
+@QROW app=search state=RED q=[9.99,2.24]
+@QROW app=search state=MAGENTA q=[2.55,-7.50]
+Q-table after 12 training episode(s).  Higher = better move.
+  color         LEFT   RIGHT   best move
+  BLUE          7.92   -1.09   <- LEFT
+  YELLOW        5.50   -0.90   <- LEFT
+  RED           9.99    2.24   <- LEFT
+  MAGENTA       2.55   -7.50   <- LEFT
+
+>> Move the arm to a new starting brick. Then press RIGHT to TRAIN or LEFT to TEST.
+--- USB cable disconnected here (mpremote: OSError: [Errno 6] Device not configured) ---
